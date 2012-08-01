@@ -1,0 +1,20 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 04-jellium.test 8321 2011-09-25 00:10:12Z xavier $
+
+Test       : Jellium
+Programs   : octopus; octopus_mpi
+TestGroups : long-run
+Enabled    : Yes
+
+# This test calculates the ground-state of a Na8 cluster, described by
+# the spherical-jellium model. The calculation reproduces one of the 
+# first calculations of this kind; namely the plot of the density and of
+# the total self-consistent potential reproduces Fig. 1 of
+# [W. Ekardt, Phys. Rev. B 29, 1558 (1984)].
+# 
+
+Input: 04-jellium.01-ground_state.inp
+match ; Total energy   ; GREP(static/info, 'Total       =', 20) ; -0.57652032
+match ; Eigenvalue [s] ; GREP(static/info, '1   --', 13) ; -0.167698
+match ; Eigenvalue [p] ; GREP(static/info, '2   --', 13) ; -0.122636
+

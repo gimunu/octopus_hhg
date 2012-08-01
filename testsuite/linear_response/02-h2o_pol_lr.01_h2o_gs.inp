@@ -1,0 +1,15 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 02-h2o_pol_lr.01_h2o_gs.inp 7532 2011-03-03 06:42:10Z dstrubbe $
+
+CalculationMode = gs
+
+fromScratch = yes
+
+%Coordinates
+ 'O'  |  0.000000  | -0.553586  |  0.000000
+ 'H'  |  1.429937  |  0.553586  |  0.000000
+ 'H'  | -1.429937  |  0.553586  |  0.000000
+%
+
+Spacing = 0.65
+ConvRelDens = 8.0e-8

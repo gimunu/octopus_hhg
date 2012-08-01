@@ -1,0 +1,42 @@
+CalculationMode = unocc
+FromScratch = yes
+Dimensions = 2
+
+omega0 = 1.0
+dist = 3.0
+
+%Species
+"qd" | 1.0 | spec_user_defined | 1 | "0.5*omega0*min((x-dist/2)^2+y^2,(x+dist/2)^2+y^2-0.02)"
+%
+
+NumberUnoccStates = 1
+
+%Coordinates
+"qd" | 0 | 0 | 0 
+%
+
+BoxShape = sphere
+Radius = 9.5
+Spacing = 0.23
+
+DerivativesOrder = 4
+
+TheoryLevel = independent_particles
+
+UnoccMaximumIter = 2
+ConvAbsDens = 1e-10
+LCAOStart = lcao_none
+
+EigenSolver = plan
+EigenSolverTolerance = 1e-6
+
+magfield = 3.0
+
+# P_c is the speed of light in atomic units.
+P_c = 137.036
+%StaticMagneticField
+0 | 0 | magfield*P_c
+%
+
+Output = wfs
+OutputHow = axis_x

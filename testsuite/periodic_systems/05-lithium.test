@@ -1,0 +1,60 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 04-silicon.test 3344 2007-10-13 13:38:03Z acastro $
+
+Test       : Lithium
+Programs   : octopus; octopus_mpi
+TestGroups : short-run
+Enabled    : Yes
+
+# ground state
+Input      : 05-lithium.01-gs.inp
+
+match ; Total energy       ; GREP(static/info, 'Total       =', 20) ; -0.55438036
+match ; Ion-ion energy     ; GREP(static/info, 'Ion-ion     =', 20) ; -0.54866368
+match ; Eigenvalues sum    ; GREP(static/info, 'Eigenvalues =', 20) ; -0.11103889
+match ; Hartree energy     ; GREP(static/info, 'Hartree     =', 20) ;  0.00074839
+match ; Exchange energy    ; GREP(static/info, 'Exchange    =', 20) ; -0.28174217
+match ; Correlation energy ; GREP(static/info, 'Correlation =', 20) ; -0.07142801
+match ; Kinetic energy     ; GREP(static/info, 'Kinetic     =', 20) ;  0.26589250
+match ; External energy    ; GREP(static/info, 'External    =', 20) ;  0.08081263
+
+match ; Eigenvalue      [ k = 1  ] ; GREP(static/info, '#k =   1', 12,  1) ; -0.118409
+match ; Eigenvalue      [ k = 2  ] ; GREP(static/info, '#k =   2', 12,  1) ; -0.118409
+match ; Eigenvalue      [ k = 3  ] ; GREP(static/info, '#k =   3', 12,  1) ; -0.118409
+match ; Eigenvalue      [ k = 5  ] ; GREP(static/info, '#k =   5', 12,  1) ; -0.118409
+match ; Eigenvalue      [ k = 17 ] ; GREP(static/info, '#k =  17', 12,  1) ; -0.075798
+match ; Eigenvalue      [ k = 23 ] ; GREP(static/info, '#k =  23', 12,  1) ; -0.035409
+match ; Eigenvalue      [ k = 32 ] ; GREP(static/info, '#k =  32', 12,  1) ; -0.075798
+match ; Eigenvalue      [ k = 41 ] ; GREP(static/info, '#k =  41', 12,  1) ; -0.035409
+match ; Eigenvalue      [ k = 55 ] ; GREP(static/info, '#k =  55', 12,  1) ; -0.035409
+match ; Eigenvalue      [ k = 58 ] ; GREP(static/info, '#k =  58', 12,  1) ; -0.035409
+match ; Eigenvalue      [ k = 60 ] ; GREP(static/info, '#k =  60', 12,  1) ; -0.035409
+match ; Eigenvalue      [ k = 64 ] ; GREP(static/info, '#k =  64', 12,  1) ;  0.007876
+
+Input      : 05-lithium.02-td.inp
+
+match ; Energy           [step  1] ; LINE(td.general/energy, -21, 30) ; -5.543774675224e-01
+match ; Energy           [step  5] ; LINE(td.general/energy, -16, 30) ; -5.491962738618e-01
+match ; Energy           [step 10] ; LINE(td.general/energy, -11, 30) ; -5.491979907577e-01
+match ; Energy           [step 15] ; LINE(td.general/energy,  -6, 30) ; -5.491996720732e-01
+match ; Energy           [step 20] ; LINE(td.general/energy,  -1, 30) ; -5.492013062508e-01
+
+match ; Vector potential [step  1] ; LINE(td.general/gauge_field, -21, 30) ; 1.000000000000e+01
+match ; Vector potential [step  5] ; LINE(td.general/gauge_field, -16, 30) ; 9.995809815058e+00
+match ; Vector potential [step 10] ; LINE(td.general/gauge_field, -11, 30) ; 9.983252136994e+00
+match ; Vector potential [step 15] ; LINE(td.general/gauge_field,  -6, 30) ; 9.962363792646e+00
+match ; Vector potential [step 20] ; LINE(td.general/gauge_field,  -1, 30) ; 9.933201081578e+00
+
+Input      : 05-lithium.03-td-restart.inp
+
+match ; Energy           [step 20] ; LINE(td.general/energy, -11, 30) ; -5.492013062508e-01
+match ; Energy           [step 35] ; LINE(td.general/energy,  -6, 30) ; -5.492028861244e-01
+match ; Energy           [step 30] ; LINE(td.general/energy,  -1, 30) ; -5.492044065224e-01
+
+match ; Vector potential [step 20] ; LINE(td.general/gauge_field, -11, 30) ; 9.933201081578e+00
+match ; Vector potential [step 25] ; LINE(td.general/gauge_field,  -6, 30) ; 9.895834707018e+00
+match ; Vector potential [step 30] ; LINE(td.general/gauge_field,  -1, 30) ; 9.850345872326e+00
+
+Util : oct-dielectric-function
+Input      : 05-lithium.04-dielectric_function.inp
+# why are there no matches? --DAS

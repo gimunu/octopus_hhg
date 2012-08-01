@@ -1,0 +1,27 @@
+an ignore specific files
+.DS_Store
+script
+testsuite/oct-run_testsuite
+stamp-h1
+build/octopus.spec
+aclocal.m4
+
+# Use wildcards as well
+*.o
+*.svn
+*.mod
+Makefile*
+*.a
+*.f90
+config*
+src/utils/oct*
+src/main/oct*
+share/vari*
+._*
+
+# Can also ignore all directories and files in a directory.
+.svn/*
+autom4te.cache/*
+build-aux/*
+.deps
+doc/*

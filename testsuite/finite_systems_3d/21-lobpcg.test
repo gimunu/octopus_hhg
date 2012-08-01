@@ -1,0 +1,39 @@
+# -*- coding: utf-8 -*-
+# $Id$
+
+Test       : LOBPCG
+Options    : scalapack
+Programs   : octopus_mpi
+Options    : 
+Programs   : octopus
+TestGroups : short-run
+Enabled    : Yes
+
+# Depending on the context, the LOBPCG routine takes different branches, which
+# are checked with this test:
+#   * spin-polarized.
+#   * spinors,
+#   * curvilinear coordinates,
+# The checks are only performed with the parallel LOBPCG.
+
+Input: 21-lobpcg.01-spin_polarized.inp
+match ; Eigenvalue 1 up; GREP(static/info, ' 1   up', 13) ;       -14.461727
+match ; Eigenvalue 1 dn; GREP(static/info, ' 1   dn', 13) ;       -11.750136
+match ; Eigenvalue 2 up; GREP(static/info, ' 2   up', 13) ;       -6.187145
+match ; Eigenvalue 2 dn; GREP(static/info, ' 2   dn', 13) ;       -3.682145
+match ; Eigenvalue 3 up; GREP(static/info, ' 3   up', 13) ;       -6.187145
+match ; Eigenvalue 3 dn; GREP(static/info, ' 3   dn', 13) ;       -3.682145
+match ; Eigenvalue 4 up; GREP(static/info, ' 4   up', 13) ;       -6.187145
+match ; Eigenvalue 4 dn; GREP(static/info, ' 4   dn', 13) ;       -3.682145
+
+Input: 21-lobpcg.02-spinors.inp
+Precision : 0.001
+match ; Eigenvalue 1 up; GREP(static/info, ' 1   --', 13) ;       -18.502399
+match ; Eigenvalue 1 dn; GREP(static/info, ' 2   --', 13) ;       -16.447015
+match ; Eigenvalue 2 up; GREP(static/info, ' 3   --', 13) ;        -4.496144
+match ; Eigenvalue 2 dn; GREP(static/info, ' 4   --', 13) ;        -4.496139
+match ; Eigenvalue 3 up; GREP(static/info, ' 5   --', 13) ;        -4.496132
+Precision : 0.005
+match ; mx             ; GREP(static/info, 'Local Magnetic Moments', 20, 2) ;  1.187255
+match ; my             ; GREP(static/info, 'Local Magnetic Moments', 33, 2) ;  1.187255
+match ; mz             ; GREP(static/info, 'Local Magnetic Moments', 46, 2) ; -1.081269

@@ -1,0 +1,26 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 02-neon_mpi.03-td_calc-kli_par_states.inp 7850 2011-05-10 22:43:21Z xavier $
+#
+
+FromScratch = yes
+
+CalculationMode = td
+
+ParallelizationStrategy = par_states
+
+Dimensions = 1
+Spacing = 0.2
+Radius = 50.0
+
+XCFunctional = oep_x
+OEPLevel = oep_kli
+
+%Species
+  "Neon1D" | 1 | spec_user_defined | 10 | "-10/sqrt(0.25 + x^2)"
+%
+
+%Coordinates
+  "Neon1D" | 0
+%
+
+TDMaximumIter = 10

@@ -1,0 +1,14 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 23-go-na2.test $
+
+Test       : Geometry optimization
+Programs   : octopus_mpi; octopus; octopus_single
+TestGroups : long-run
+Enabled    : Yes
+
+Input      : 23-go-na2.01-steep.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -0.41784564
+match ; Force    [1] ; GREP(static/info, 'Forces on the ions', 50, 2) ; -0.000732
+match ; Force    [2] ; GREP(static/info, 'Forces on the ions', 50, 3) ;  0.000732
+match ; Geometry [1] ; LINE(min.xyz, 3, 50) ; -2.738370
+match ; Geometry [1] ; LINE(min.xyz, 4, 50) ;  2.738370

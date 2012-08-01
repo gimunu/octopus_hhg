@@ -1,0 +1,21 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 01-hydrogen.test 8321 2011-09-25 00:10:12Z xavier $
+
+Test       : 1D-Hydrogen
+Programs   : octopus; octopus_single; octopus_mpi
+TestGroups : short-run; daily
+Enabled    : Yes
+
+# This test calculates a one-dimensional model for Hydrogen, considering
+# a soft-Coulomb nuclueus-electron interaction. It calculates the ground-state
+# in a first run, and then the first nine excited states in the "unocc" mode.
+# It is about the simplest thing one can do with octopus...
+#
+# It is a replication of the calculation presented in Table I of
+# [J. Javanainen, J. H. Eberly and Q. Su, Phys. Rev. A 38, 3430 (1998)].
+# The numbers provided in that Table should match the values that octopus
+# prints in the excited_states_static/eigenvalues file.
+
+Input: 01-hydrogen.01-ground_state.inp
+match ; Total energy ; GREP(ground_state_static/info, 'Total       =', 20)    ; -0.66978603
+match ; 10th state   ; GREP(excited_states_static/eigenvalues, '10   --', 12) ; -0.017727

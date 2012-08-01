@@ -1,0 +1,15 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 06-restart.04-restart_td_calc.inp 7839 2011-05-03 20:14:03Z xavier $
+
+# Finally restart the td calculation
+
+CalculationMode = td
+fromScratch = no
+Radius = 7.0
+Spacing = 0.5
+%Coordinates
+  "Na" | 0 | 0 | 0
+%
+SpinComponents = spin_polarized
+TDTimeStep = 0.07
+TDMaximumIter = 10

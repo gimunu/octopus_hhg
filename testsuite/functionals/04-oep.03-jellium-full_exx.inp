@@ -1,0 +1,55 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 04-oep.03-jellium-full_exx.inp 9012 2012-04-14 04:16:37Z xavier $
+#
+# This input files reproduces results from:
+# [M. Payami and T. Mahmoodi, J. Phys.: Condens. Matter 18, 75 (2006)].
+# All numbers from Table I may be obtained by properly choosing
+# r_s and N_electrons.
+#
+# However, they are not reproduced exactly, probably due to differences
+# in the numerical representation. This is a bit of a problem, since the
+# differences between KLI and full EXX are smaller than this (hopefully
+# only) numerical error.
+#
+# Figure 4 can also be obtained, although for some reason only if 
+# the density is divided by 2. I think that in the paper they slipped
+# some factor of 2.
+
+
+# And finally, full EXX for Li, 8 electrons (restarting from the previous run)
+
+CalculationMode = gs
+
+FromScratch = no
+
+r_s = 3.28
+N_electrons = 8
+jellium_radius = r_s * (N_electrons)^(1.0/3.0)
+
+%Species
+"jellium" | 1.0 | spec_jelli | N_electrons | jellium_radius
+%
+
+%Coordinates
+"jellium" | 0 | 0 | 0
+%
+
+BoxShape = sphere
+Radius  = 13.0
+Spacing = 0.35
+
+XCFunctional = oep_x
+OEPLevel = oep_full
+
+
+ConvRelDens = 8e-10
+
+LCAOStart = lcao_none
+
+EigenSolverTolerance = 1e-5
+
+Preconditioner = no
+
+LinearSolver = cg
+
+ParallelizationStrategy=par_domains

@@ -1,0 +1,46 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 03-sodium_chain.02-ground_state_disp.inp 8273 2011-09-09 17:42:49Z xavier $
+
+Units = ev_angstrom
+
+Dimensions = 3
+PeriodicDimensions = 1
+
+%CalculationMode
+   gs   |  unocc                     
+  "gs_" | "unocc_"
+%
+
+unocc_RestartDir = "gs_restart"
+
+%Species
+  "Na"  | 23.0 | spec_ps_psf | 11 | 2 | 2
+%
+
+%Coordinates
+  "Na" |  -1.99932905 | 0.0 | 0.0 
+%
+
+BoxShape = parallelepiped
+
+%Lsize
+ 1.99932905 | 5.29 | 5.29
+%
+
+%Spacing
+ 0.3 | 0.3 | 0.3
+%
+
+%KPoints
+0.1 | 0.000000 | 0.000000| 0.000000
+0.2 | 0.157132 | 0.000000| 0.000000
+0.2 | 0.314265 | 0.000000| 0.000000
+0.2 | 0.471397 | 0.000000| 0.000000
+0.2 | 0.628529 | 0.000000| 0.000000
+0.1 | 0.785662 | 0.000000| 0.000000
+%
+
+LCAODimension = 9
+unocc_LCAOStart = lcao_none
+
+NumberUnoccStates = 1

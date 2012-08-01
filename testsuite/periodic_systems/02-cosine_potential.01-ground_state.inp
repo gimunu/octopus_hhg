@@ -1,0 +1,46 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 02-cosine_potential.01-ground_state.inp 7532 2011-03-03 06:42:10Z dstrubbe $
+
+CalculationMode = gs
+
+FromScratch = yes
+
+Dimensions = 1
+PeriodicDimensions = 1
+
+ConvAbsDens = 1e-12
+
+OnlyUserDef = yes
+TheoryLevel = independent_particles
+
+%Species
+ "Cosine"  | 1 | spec_user_defined | 2 | "-0.2*cos(pi*x/10.0)"
+%
+
+%Coordinates
+ "Cosine" | 0
+%
+
+
+BoxShape = parallelepiped
+
+%Lsize
+ 10.0
+%
+
+%Spacing
+ 0.5
+%
+
+%BoxOffset
+ 0.0
+%
+
+%KPoints
+0.1 | 0.000000
+0.2 | 0.031416
+0.2 | 0.062832
+0.2 | 0.094248
+0.2 | 0.125664
+0.1 | 0.157080
+%

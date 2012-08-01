@@ -1,0 +1,37 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 01-quadratic_box.01-ground_state.inp 9012 2012-04-14 04:16:37Z xavier $
+#
+# The following tests reproduced some basic results from:
+# E. Rasanen et al., Phys. Rev. B 67, 235307 (2003).
+
+# This input file is just the particle in a box in 2D calculation.
+
+CalculationMode = gs
+FromScratch = yes
+Dimensions = 2
+
+%Species
+"qd" | 1.0 | spec_user_defined | 1 | "0"
+%
+
+%Coordinates
+"qd" | 0 | 0
+%
+
+BoxShape = parallelepiped
+npoints = 101
+delta = pi/(npoints + 1)
+l = pi - 2*delta
+%Lsize
+l/2 | l/2
+%
+%Spacing
+delta | delta
+%
+
+DerivativesOrder = 1
+
+TheoryLevel = independent_particles
+
+EigenSolverMaxIter = 250
+

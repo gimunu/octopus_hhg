@@ -1,0 +1,35 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 02-fock-darwin.test 8321 2011-09-25 00:10:12Z xavier $
+
+Test       : Fock-Darwin spectrum
+Programs   : octopus; octopus_mpi
+TestGroups : short-run
+Enabled    : Yes
+
+
+# This is a 2D system of 20 non-interacting electrons in 2D, confined
+# by a harmonic potential. To this field we add a static magnetic
+# field, perpendicular to the plane. The resulting list of eigenvalues
+# should be the Fock-Darwin spectrum:
+#  E(n, l) = (2*n + 1 + abs(l)) * Omega + 0.5 * l * w_c
+# where w_c = (e*B)/(m*c) is the cyclotron frequency (e and m are the
+# charge and mass of the electron, respectively, and c is the speed of
+# light), and Omega = sqrt(omega^2 + (w_c/2)^2) -- omega is the frequency
+# that defines the Harmonic well. n = 0, 1, 2, ...; 
+# l = 0, 1, -1, 2, -2, ....
+# [V. Fock, Z. Phys. 47, 446 (1928); C. G. Darwin, Proc. Cambridge Philos.
+# Soc. 27, 86 (1930)]
+# 
+
+Input : 02-fock-darwin.01-ground_state.inp
+
+match ; Eigenvalue  1 ; GREP(static/info, ' 1   --', 13) ; 0.250200
+match ; Eigenvalue  2 ; GREP(static/info, ' 2   --', 13) ; 0.490400
+match ; Eigenvalue  3 ; GREP(static/info, ' 3   --', 13) ; 0.510400
+match ; Eigenvalue  4 ; GREP(static/info, ' 4   --', 13) ; 0.730599
+match ; Eigenvalue  5 ; GREP(static/info, ' 5   --', 13) ; 0.750599
+match ; Eigenvalue  6 ; GREP(static/info, ' 6   --', 13) ; 0.770599
+match ; Eigenvalue  7 ; GREP(static/info, ' 7   --', 13) ; 0.970798
+match ; Eigenvalue  8 ; GREP(static/info, ' 8   --', 13) ; 0.990797
+match ; Eigenvalue  9 ; GREP(static/info, ' 9   --', 13) ; 1.010796
+match ; Eigenvalue 10 ; GREP(static/info, '10   --', 13) ; 1.030798

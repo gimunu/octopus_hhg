@@ -1,0 +1,17 @@
+CalculationMode = gs
+
+%Coordinates
+'O' |  1.1432843 | 0.0 | 0.0 
+'O' | -1.1432843 | 0.0 | 0.0 
+%
+
+SpinComponents = spin_polarized
+
+ExtraStates = 1
+
+FromScratch = yes
+
+Spacing = 0.55
+Radius = 6
+
+ParallelizationStrategy = par_kpoints

@@ -1,0 +1,27 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 02-neon_mpi.test 8656 2011-12-05 22:44:19Z dstrubbe $
+
+Test       : 1D-Neon - MPI
+Programs   : octopus_mpi; octopus
+TestGroups : short-run
+Enabled    : Yes
+
+# This test calculates a one-dimensional model of the Neon atom (soft Coulomb 
+# interaction) in KLI approximation.
+
+
+# specify on how many processors we should run this test
+Processors : 3
+Input      : 02-neon_mpi.01-ground_state-IP_par_domains.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -87.55795211
+
+Input      : 02-neon_mpi.02-ground_state-kli_par_domains.inp
+Precision  : 0.0002
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -61.0380
+
+
+# now we start a td calculation parallel in states on 5 processors
+Processors : 5
+Input      : 02-neon_mpi.03-td_calc-kli_par_states.inp
+
+# Why no matches??

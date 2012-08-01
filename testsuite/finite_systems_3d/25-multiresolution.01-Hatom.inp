@@ -1,0 +1,24 @@
+%Coordinates
+ 'H_f' | 0 | 0 | 0
+%
+%Species 
+ 'H_f' | 1.00794 | spec_full_delta | 1
+%
+
+LCAOStart = no
+Boxshape = sphere
+Radius = 8.0
+Spacing = 0.2
+fromScratch = yes
+
+TheoryLevel = independent_particles
+
+EigenSolverMaxIter = 300
+
+EigenSolver = cg_new
+
+%MultiResolutionArea
+  0.0 |  0.0 |  0.0 | 2.40
+%
+
+ExperimentalFeatures = yes

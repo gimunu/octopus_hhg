@@ -1,0 +1,38 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id$
+#
+# This input file is the same as 01-carbon_atom.01-ground_state.inp
+# except for the use of parallel LOBPCG.
+
+ParallelizationStrategy = par_states
+
+CalculationMode = gs
+fromScratch = yes
+units = ev_angstrom
+
+%Coordinates
+"C" | 0 | 0 | 0
+%
+
+Spacing = 0.19
+Radius = 5.0
+
+SpinComponents = polarized
+
+ExtraStates = 2
+%Occupations
+ 2/3 | 2/3 | 2/3
+ 0 | 0 | 0
+%
+
+XCFunctional = lda_x + lda_c_pz
+
+EigenSolver = lobpcg
+
+ConvRelDens = 1e-6
+
+PoissonSolver = fft
+PoissonFFTKernel = multipole_correction
+
+
+

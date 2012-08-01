@@ -1,0 +1,42 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 05-adw.01-ground_state.inp 9012 2012-04-14 04:16:37Z xavier $
+#
+# The two lowest eigenstates of the asymmetric double well,
+#  V(x) = 1/64*(x)^4-1/4*(x)^2+1/256*(x)^3
+# are calculated. 
+
+
+
+%CalculationMode
+gs              | unocc
+"ground_state_" | "excited_states_"
+1               | 2
+%
+
+ExperimentalFeatures = yes
+
+excited_states_RestartDir = "ground_state_restart"
+
+Dimensions = 1
+fromScratch = yes
+
+BoxShape = sphere
+#Spacing = 0.12
+Spacing = 0.24
+Radius =  8.0
+
+TheoryLevel = independent_particles
+
+%Species
+"AWD1D" | 1 | spec_user_defined | 1 | "1/64*(x)^4-1/4*(x)^2+1/256*(x)^3"
+%
+
+TheoryLevel = independent_particles
+
+%Coordinates
+"AWD1D" | 0
+%
+
+EigenSolverMaxIter = 1000
+
+NumberUnoccStates = 1

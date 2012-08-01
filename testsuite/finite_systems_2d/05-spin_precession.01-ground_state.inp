@@ -1,0 +1,34 @@
+CalculationMode = gs
+FromScratch = yes
+Dimensions = 2
+
+omega = 0.25
+
+%Species
+"qd" | 1.0 | spec_user_defined | 1 | "0.5*omega^2*r^2"
+%
+
+%Coordinates
+"qd" | 0 | 0
+%
+
+BoxShape = sphere
+Radius = 25.0
+Spacing = 0.5
+
+DerivativesOrder = 4
+
+TheoryLevel = independent_particles
+
+SpinComponents = spinors
+
+ConvAbsDens = 1e-10
+
+# We cannot use the LCAO because otherwise the InitialSpins don't work.
+LCAOStart = no
+
+%InitialSpins
+ 0.5 |  0.0 |  0.0
+%
+
+EigenSolverMaxIter = 250

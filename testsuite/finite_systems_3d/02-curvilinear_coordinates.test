@@ -1,0 +1,13 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 02-curvilinear_coordinates.test 8321 2011-09-25 00:10:12Z xavier $
+
+Test       : Curvilinear Coordinates
+Programs   : octopus
+TestGroups : short-run
+Enabled    : Yes
+
+
+Input: 02-curvilinear_coordinates.01-gygi.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -2.86805481
+match ; Eigenvalue   ; GREP(static/info, '1   --', 13) ; -0.576032
+

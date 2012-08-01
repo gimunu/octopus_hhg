@@ -1,0 +1,113 @@
+# RPM spec file for @PACKAGE@.
+# This file is used to build Redhat Package Manager packages for the
+# @PACKAGE@.  Such packages make it easy to install and uninstall
+# the library and related files from binaries or source.
+#
+# This spec file is for version @VERSION@ of @PACKAGE@; the appropriate
+# version numbers are automatically substituted in to @PACKAGE@.spec.in
+# by the configure script.  However, @PACKAGE@.spec.in may need to be
+# modified for future releases, if the list of installed files
+# or build commands change.
+#
+# RPM.  To build, use the command: rpm --clean -ba @PACKAGE@.spec
+#
+# Alternatively, you can just use 'make rpm'.
+#
+Name: @PACKAGE@
+Summary: real-space, real-time, TDDFT code
+Version: @VERSION@
+Release: 1
+Provides: %{name}
+License: GPL 2.0
+Group: Applications/Scientific
+Prefix: /usr
+BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
+Source: http://www.tddft.org/programs/octopus/download/%{name}-%{version}.tar.gz
+URL: http://www.tddft.org/programs/octopus
+
+%description
+octopus is a computer package aimed at the simulation of the electron-ion 
+dynamics of finite systems, both in one and three dimensions, under the 
+influence of time-dependent electromagnetic fields. The electronic degrees 
+of freedom are treated quantum mechanically within the time-dependent 
+Kohn-Sham formalism, while the ions are handled classically. All quantities 
+are expanded in a regular mesh in real space, and the simulations are 
+performed in real time. Although not optimized for that purpose, the 
+program is also able to obtain static properties like ground-state geometries,
+or static polarizabilities. The method employed proved quite reliable and 
+general, and has been successfully used to calculate linear and non-linear 
+absorption spectra, harmonic spectra, laser induced fragmentation, etc. 
+of a variety of systems, from small clusters to medium sized quantum dots.
+
+%prep
+rm -rf $RPM_BUILD_ROOT
+%setup -q
+
+# The installation is also performed in the %%build stage because the
+# code has to be configured twice, with and without MPI support, and
+# cleaned in between.
+%build
+%configure \
+  FC="@FC@" \
+  FCFLAGS="@FCFLAGS@" \
+  CFLAGS="@CFLAGS@" \
+  CPPFLAGS="@CPPFLAGS@" \
+  LDFLAGS="@LDFLAGS@" \
+  LIBS_BLAS="@LIBS_BLAS@" \
+  LIBS_LAPACK="@LIBS_LAPACK@" \
+  LIBS_FFT="@LIBS_FFT@" \
+  GSL_CFLAGS="@GSL_CFLAGS@" \
+  GSL_CONFIG="@GSL_CONFIG@" \
+  GSL_LIBS="@GSL_LIBS@" \
+  --with-sparskit="@LIBS_SPARSKIT@" \
+  --with-arpack="@LIBS_ARPACK@" \
+  --with-netcdf="@LIBS_NETCDF@" \
+  --enable-mpi
+
+make
+
+make install DESTDIR=${RPM_BUILD_ROOT}
+
+make clean
+
+%configure \
+  FC="@FC@" \
+  FCFLAGS="@FCFLAGS@" \
+  CFLAGS="@CFLAGS@" \
+  CPPFLAGS="@CPPFLAGS@" \
+  LDFLAGS="@LDFLAGS@" \
+  LIBS_BLAS="@LIBS_BLAS@" \
+  LIBS_LAPACK="@LIBS_LAPACK@" \
+  LIBS_FFT="@LIBS_FFT@" \
+  GSL_CFLAGS="@GSL_CFLAGS@" \
+  GSL_CONFIG="@GSL_CONFIG@" \
+  GSL_LIBS="@GSL_LIBS@" \
+  --with-sparskit="@LIBS_SPARSKIT@" \
+  --with-arpack="@LIBS_ARPACK@" \
+  --with-netcdf="@LIBS_NETCDF@"
+
+make
+
+(cd doc; make octopus.ps; gzip octopus.ps)
+
+make install DESTDIR=${RPM_BUILD_ROOT}
+
+
+%clean
+rm -rf ${RPM_BUILD_ROOT}
+
+
+%post
+install-info %{_infodir}/octopus.info &> /dev/null
+
+
+%preun
+install-info --remove octopus &> /dev/null
+
+
+%files
+%defattr(-,root,root,0755)
+%doc README NEWS COPYING AUTHORS doc/octopus.ps.* doc/pdf/*.pdf
+%{_bindir}/*
+%{_datadir}/octopus/*
+%{_mandir}/man1/*

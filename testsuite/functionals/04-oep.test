@@ -1,0 +1,42 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 04-oep.test 9012 2012-04-14 04:16:37Z xavier $
+
+Test       : OEP
+Programs   : octopus; octopus_mpi
+TestGroups : long-run
+Enabled    : Yes
+
+# This input files reproduces results from:
+# [M. Payami and T. Mahmoodi, J. Phys.: Condens. Matter 18, 75 (2006)].
+# All numbers from Table I may be obtained by properly choosing
+# r_s and N_electrons.
+#
+# However, they are not reproduced exactly, probably due to differences
+# in the numerical representation. This is a bit of a problem, since the
+# differences between KLI and full EXX are smaller than this (hopefully
+# only) numerical error.
+#
+# Figure 4 can also be obtained, although for some reason only if 
+# the density is divided by 2. I think that in the paper they slipped
+# some factor of 2.
+
+
+# First, we reproduce the LSDA results for Li, 8 electrons.
+Input: 04-oep.01-jellium-lsda.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -0.50498581
+match ; Exchange     ; GREP(static/info, 'Exchange    =', 20) ; -0.95512970
+match ; Eigenvalue   ; GREP(static/info, '1   --', 13) ; -0.201113
+
+# Now, EXX/KLI for Li, 8 electrons (restarting from the previous run)
+Input: 04-oep.02-jellium-exx_kli.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -0.33269873
+match ; Exchange     ; GREP(static/info, 'Exchange    =', 20) ; -1.03286631
+match ; Eigenvalue   ; GREP(static/info, '1   --', 13) ; -0.251965
+
+
+# And finally, full EXX for Li, 8 electrons (restarting from the previous run)
+# FULL OEP is disabled for the 3.0 release.
+#Input: 04-oep.03-jellium-full_exx.inp
+#match ; Total energy ; GREP(static/info, 'Total       =', 20) ; XXXX
+#match ; Exchange     ; GREP(static/info, 'Exchange    =', 20) ; XXXX
+#match ; Eigenvalue   ; GREP(static/info, '1   --', 13) ; XXXX

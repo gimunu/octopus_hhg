@@ -1,0 +1,68 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: oct-run_regression_test.pl 2423 2006-09-24 21:25:52Z acastro $
+
+Test       : XC 2D
+Programs   : octopus; octopus_single; octopus_mpi
+TestGroups : short-run
+Enabled    : Yes
+
+Input: 02-xc_2d.00-hartree.inp
+match ; Hartree energy                           ; GREP(static/info, 'Total       =', 20)   ;  1.11152575
+match ; Hartree eigenvalues sum                  ; GREP(static/info, 'Eigenvalues =', 20)   ;  1.42855062
+match ; Hartree kinetic energy                   ; GREP(static/info, 'Kinetic     =', 20)   ;  0.31638757
+match ; Hartree external energy                  ; GREP(static/info, 'External    =', 20)   ;  0.47811330
+match ; Hartree eigenvalue 1 up                  ; GREP(static/info, '  1   up', 13) ; 0.607023
+match ; Hartree eigenvalue 2 up                  ; GREP(static/info, '  2   up', 13) ; 0.821527
+match ; Hartree eigenvalue 1 dn                  ; GREP(static/info, '  1   dn', 13) ; 1.156287
+match ; Hartree eigenvalue 2 dn                  ; GREP(static/info, '  2   dn', 13) ; 1.221884
+
+# This tests the Hartree-Fock implementation. It reproduces one number
+# given in: [B. Reusch et al., Phys. Rev. B 63, 113313]. I have chosen
+# a 2D calculation because of the great computational load produced by
+# Hartree-Fock calculation.
+#
+# The input file produces an unrestricted Hartree-Fock calculation for
+# a two-electron quantum-dot in an S=1 configuration. The details of
+# the calculation correspond to the first row of Table I in the
+# aforementioned paper. The units in that table are given in units of
+# "omega", and since omega in this case is 0.25 effective atomic
+# units, 1.0419 e.a.u. corresponds to 4.168, as given in the table.
+
+# Results for 8-electron quantum dots, provided in the paper, can
+# also be approximately reproduced. I do not put a test because it
+# would be too slow. In fact, the results provided by octopus are
+# lower in energy and closer to the Quantum Monte Carlo numbers, which
+# could be due to the use of an underconverged basis set in the paper.
+
+Input: 02-xc_2d.01-hf.inp
+match ; Hartree-Fock energy                      ; GREP(static/info, 'Total       =', 20)   ;  1.04191861
+match ; Hartree-Fock eigenvalues sum             ; GREP(static/info, 'Eigenvalues =', 20)   ;  1.31401934
+match ; Hartree-Fock kinetic energy              ; GREP(static/info, 'Kinetic     =', 20)   ;  0.31688385
+match ; Hartree-Fock external energy             ; GREP(static/info, 'External    =', 20)   ;  0.45293349
+match ; Hartree-Fock eigenvalue 1 up             ; GREP(static/info, '  1   up', 13) ; 0.537515
+match ; Hartree-Fock eigenvalue 2 up             ; GREP(static/info, '  2   up', 13) ; 0.776505
+match ; Hartree-Fock eigenvalue 1 dn             ; GREP(static/info, '  1   dn', 13) ; 1.169397
+match ; Hartree-Fock eigenvalue 2 dn             ; GREP(static/info, '  2   dn', 13) ; 1.224726
+
+# We use the wave-functions obtained to test the 2D XC functionals
+
+Input: 02-xc_2d.lda_amgb.inp
+match ; LDA exchange                             ; GREP(out, 'Exchange    =', 20)   ; -0.62342504
+match ; LDA AMGB correlation                     ; GREP(out, 'Correlation =', 20)   ; -0.03534534
+
+# (this calculation is done without spin polarization)
+Input: 02-xc_2d.lda_prm.inp
+match ; LDA exchange                             ; GREP(out, 'Exchange    =', 20)   ; -0.44082808
+match ; LDA PRM correlation                      ; GREP(out, 'Correlation =', 20)   ; -0.12223476
+
+Input: 02-xc_2d.gga_b86.inp
+match ; GGA 2D B86 exchange                      ; GREP(out, 'Exchange    =', 20)   ; -0.66569035
+
+Input: 02-xc_2d.gga_b86_mgc.inp
+match ; GGA 2D B86 MGC exchange                  ; GREP(out, 'Exchange    =', 20)   ; -0.65901733
+
+Input: 02-xc_2d.gga_b88.inp
+match ; GGA 2D B88 exchange                      ; GREP(out, 'Exchange    =', 20)   ; -0.67040364
+
+Input: 02-xc_2d.gga_pbe.inp
+match ; GGA 2D PBE exchange                      ; GREP(out, 'Exchange    =', 20)   ; -0.67022789

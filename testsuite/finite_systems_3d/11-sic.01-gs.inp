@@ -1,0 +1,28 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 11-sic.01-gs.inp 9012 2012-04-14 04:16:37Z xavier $
+
+CalculationMode = gs
+
+FromScratch = yes
+
+%Species
+  "Ar" | 39.9480000 | spec_ps_hgh | 18 | -1 | -1
+%
+
+%Coordinates
+  "Ar" | 0 | 0 | 0
+%
+
+spacing = 0.32
+radius = 12.0
+
+XCFunctional = lda_x + lda_c_xalpha
+XAlpha = 2/3
+SICCorrection = sic_pz
+OEPLevel = oep_kli
+
+EigenSolver = cg_new
+
+Mixing = 0.1
+ConvRelDens = 1e-5
+

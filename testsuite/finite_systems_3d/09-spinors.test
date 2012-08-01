@@ -1,0 +1,29 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 09-spinors.test 8321 2011-09-25 00:10:12Z xavier $
+
+Test     : Spinors
+Programs : octopus; octopus_mpi
+TestGroups  : short-run
+Enabled  : Yes
+
+Input: 09-spinors.01-ground_state.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -0.17669588
+match ; Eigenvalue   ; GREP(static/info, '1   --', 13) ; -0.085321
+match ; <Sx>         ; GREP(static/info, '1   --', 36) ;  0.1928
+match ; <Sy>         ; GREP(static/info, '1   --', 44) ;  0.1928
+match ; <Sz>         ; GREP(static/info, '1   --', 52) ;  0.4191
+match ; mx           ; GREP(static/info, 'Local Magnetic Moments', 20, 2) ; 0.385559
+match ; my           ; GREP(static/info, 'Local Magnetic Moments', 33, 2) ; 0.385559
+match ; mz           ; GREP(static/info, 'Local Magnetic Moments', 46, 2) ; 0.838265
+
+Input: 09-spinors.02-rmmdiis.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -0.17669588
+match ; Eigenvalue   ; GREP(static/info, '1   --', 13) ; -0.085321
+match ; <Sx>         ; GREP(static/info, '1   --', 36) ;  0.1975
+match ; <Sy>         ; GREP(static/info, '1   --', 44) ;  0.1975
+match ; <Sz>         ; GREP(static/info, '1   --', 52) ;  0.4147
+Precision : 0.00021
+match ; mx           ; GREP(static/info, 'Local Magnetic Moments', 20, 2) ; 0.394958
+match ; my           ; GREP(static/info, 'Local Magnetic Moments', 33, 2) ; 0.394958
+match ; mz           ; GREP(static/info, 'Local Magnetic Moments', 46, 2) ; 0.829468
+

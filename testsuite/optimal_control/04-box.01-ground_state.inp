@@ -1,0 +1,41 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 04-box.01-ground_state.inp 9012 2012-04-14 04:16:37Z xavier $
+#
+# The two lowest eigenstates of the asymmetric double well,
+# V(x) = -5*step(x+5)*step(5-x)
+# are calculated. 
+
+
+
+%CalculationMode
+gs              | unocc
+"ground_state_" | "excited_states_"
+1               | 2
+%
+
+ExperimentalFeatures = yes
+
+excited_states_RestartDir = "ground_state_restart"
+
+Dimensions = 1
+fromScratch = yes
+
+BoxShape = sphere
+Spacing = 0.4
+Radius =  15.0
+
+TheoryLevel = independent_particles
+
+%Species
+"Box1D" | 1 | spec_user_defined | 1 | "-5*step(x+5)*step(5-x)"
+%
+
+TheoryLevel = independent_particles
+
+%Coordinates
+"Box1D" | 0
+%
+
+EigenSolverMaxIter = 1000
+
+NumberUnoccStates = 5

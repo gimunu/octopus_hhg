@@ -1,0 +1,15 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 04-vib_modes.02-vib_modes.inp 8198 2011-08-17 23:53:02Z dstrubbe $
+
+CalculationMode = vib_modes
+FromScratch = yes
+
+FilterPotentials = filter_TS
+BoxShape = minimum
+Spacing = 0.4
+Radius = 6
+
+%Coordinates
+  "H"  | 0 | 0 | 0.053910
+  "Li" | 0 | 0 | 3.058523
+%

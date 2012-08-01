@@ -1,0 +1,13 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 13-full_potential_hydrogen.test 8321 2011-09-25 00:10:12Z xavier $
+
+Test       : Full-Potential Hydrogen
+Programs   : octopus; octopus_mpi
+TestGroups : short-run
+Enabled    : Yes
+
+Input: 13-full_potential_hydrogen.01-gs.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ;-0.49797178
+
+Input: 13-full_potential_hydrogen.02-gs-cg.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20);-0.50144038

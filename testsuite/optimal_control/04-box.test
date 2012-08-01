@@ -1,0 +1,60 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 04-box.test 9187 2012-07-08 11:22:44Z acastro $
+
+Test       : 1D Box
+Programs   : octopus
+TestGroups : long-run, oct
+Enabled    : Yes
+
+# The test checks the optimal-control algorithm ZR98/WG05. It calculates the optimal laser field that transfers the ground state to the first excited state. 
+# 
+# We do the following intermediate steps:
+# First, the two lowest eigenstates of the box
+# V(x) = -5*step(x+5)*step(5-x),
+# are calculated. 
+Input: 04-box.01-ground_state.inp
+match ; Total energy ; GREP(ground_state_static/info, 'Total       =', 20) ; -4.95697718
+match ; 2th state    ; GREP(excited_states_static/eigenvalues, '2   --', 12) ; -4.827968
+
+# Then, run the optimization for 5 iterations with ZBR98 scheme and compare the convergence.
+
+Input: 04-box.02-oct_long.inp
+match ; J1 1st iteration  ; GREP(opt-control/convergence, ' 1  ', 40) ; 0.64160007
+match ; J1 1st iteration  ; GREP(opt-control/convergence, ' 2  ', 40) ; 0.75913859
+match ; J1 1st iteration  ; GREP(opt-control/convergence, ' 5  ', 40) ; 0.86760473
+
+
+# Then, run the optimization for 5 iterations with a ZR98 scheme and compare the convergence.
+Input: 04-box.03-oct_long.inp
+match ; J1 1st iteration  ; GREP(opt-control/convergence, ' 1  ', 40) ; 0.62184073
+match ; J1 2nd iteration  ; GREP(opt-control/convergence, ' 2  ', 40) ; 0.73957013
+match ; J1 5th iteration  ; GREP(opt-control/convergence, ' 5  ', 40) ; 0.87281765
+
+
+# Then, run the optimization for 5 iterations with a WG05 scheme and compare the convergence.
+Input: 04-box.04-oct_long.inp
+match ; J1 1st iteration  ; GREP(opt-control/convergence, ' 1  ', 40) ; 0.71057962
+match ; J1 2nd iteration  ; GREP(opt-control/convergence, ' 2  ', 40) ; 0.85780010
+match ; J1 5th iteration  ; GREP(opt-control/convergence, ' 5  ', 40) ; 0.98595702
+
+# Then, run the optimization for 5 iterations with the STRAIGHT ITERATION scheme
+# This test makes use of Broyden mixing.
+# Note that, despite the poor behaviour of the first iterations, the run actually converges
+# if it is allowed to run for more iterations.
+Input: 04-box.05-oct_long.inp
+match ; J1 1st iteration  ; GREP(opt-control/convergence, ' 1  ', 40) ; 0.57640904
+match ; J1 2nd iteration  ; GREP(opt-control/convergence, ' 2  ', 40) ; 0.74128748
+match ; J1 5th iteration  ; GREP(opt-control/convergence, ' 5  ', 40) ; 0.78706899
+
+# Then, run the optimization for "a few" iterations with the DIRECT OPTIMIZATION scheme
+Input: 04-box.06-oct_long.inp
+match ; J1 1st iteration  ; GREP(opt-control/convergence, '##        1', 40) ; 0.02116315
+
+# Then, run the optimization also with DIRECT OPTIMIZATION scheme, but optimizing
+# the envelope of the laser field only.
+Input: 04-box.07-oct_long.inp
+match ; J1 1st iteration  ; GREP(opt-control/convergence, '##        1', 40) ; 0.26364397
+
+# Now the CONJUGATE GRADIENTS scheme.
+Input: 04-box.08-oct_long.inp
+match ; J 1st iteration  ; GREP(opt-control/convergence, '##        1', 20) ; 0.67238112

@@ -1,0 +1,45 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 03-asym_doublewell.test 3193 2007-09-09 23:14:17Z acastro $
+
+Test       : OCT with local target
+Programs   : octopus
+TestGroups : long-run, oct
+Enabled    : Yes
+
+# The test ensures that the OCT with local target works.
+# 
+# We do the following intermediate steps:
+# First, the two lowest eigenstates of the asymmetric double well,
+# V(x) = 1/64*(x)^4-1/4*(x)^2+1/256*(x)^3,
+# are calculated. 
+# A similar potential is used in Rev Mod (Haenggi, Griffoni)
+
+Input: 03-localtarget.01-gs.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -0.62061608
+
+# Then, run the optimization for only one iteration and check the convergence.
+# Note that this run only converges to a good overlap with
+# the target density after a lot of iterations (e.g., if we run over
+# 50 iterations we reach J1 = -0.02195, with J1=0 implying perfect
+# overlap and J1 = -2 to overlap at all.
+# To get a better overlap, increase the quality of the mesh (reduce the grid
+# spacing) and/or increase the time interval.
+Input: 03-localtarget.02-oct.inp
+match ; J1 1st iteration  ; GREP(opt-control/convergence, ' 1  ', 40) ; -0.49521597
+
+
+# Now, we define the target as a time-dependent target. Also, we use
+# the conjugate gradients method for optimization.
+Input: 03-localtarget.03-tdoct.inp
+match ; J 1st iteration  ; GREP(opt-control/convergence, '##        1', 20) ;  0.36745475
+
+
+# Now we check that the many-particle version of the QOCT optimization of
+# local targets also works.
+
+Input: 03-localtarget.04-gs-mp.inp
+match ; Total energy ; GREP(static/info, 'Total       =', 20) ; -2.16891047
+
+# Now once again we run for only one iteration and check the convergence.
+Input: 03-localtarget.05-oct-mp.inp
+match ; J1 1st iteration  ; GREP(opt-control/convergence, ' 1  ', 40) ; -4.18554382

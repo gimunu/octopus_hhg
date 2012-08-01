@@ -1,0 +1,73 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 04-box.03-oct_long.inp 9012 2012-04-14 04:16:37Z xavier $
+
+CalculationMode = opt_control
+ExperimentalFeatures = yes
+
+RestartDir = "excited_states_restart"
+
+# ------------------
+# TD RUN Parameters
+# ------------------
+
+stime  = 100.0
+dt = 0.02
+TDPropagator = exp_mid
+TDExponentialMethod = lanczos
+TDExponentialOrder = 30
+TDLanczosTol = 1.0e-4
+TDMaximumIter = stime/dt
+TDTimeStep = dt
+
+
+# --------------
+# OCT parameters
+# --------------
+
+OCTPenalty =1.0
+OCTEps   = 0.000001
+OCTMaxIter = 5
+
+OCTInitialState = oct_is_groundstate
+OCTTargetOperator = oct_tg_gstransformation
+%OCTTargetTransformStates
+0 | 1
+%
+OCTScheme  = oct_algorithm_zr98
+OCTDoubleCheck = No	
+
+#----------------------------
+# Laser field = Initial guess
+#-----------------------------
+
+ampl = 0.06
+freq = 0.157
+%TDExternalFields
+electric_field | 1 | 0 | 0 | freq | "envelope_function"
+%
+
+%TDFunctions
+"envelope_function" | tdf_cw | ampl
+%
+
+Dimensions = 1
+fromScratch = yes
+
+BoxShape = sphere
+Spacing = 0.4
+Radius =  15.0
+
+TheoryLevel = independent_particles
+
+%Species
+"Box1D" | 1 | spec_user_defined | 1 | "-5*step(x+5)*step(5-x)"
+%
+
+%Coordinates
+"Box1D" | 0
+%
+
+EigenSolverMaxIter = 1000
+
+NumberUnoccStates = 4
+

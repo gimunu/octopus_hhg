@@ -1,0 +1,30 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: oct-run_regression_test.pl 2423 2006-09-24 21:25:52Z acastro $
+
+Test       : Lasers
+Programs   : octopus; octopus_mpi
+TestGroups : short-run
+Enabled    : Yes
+
+# This test obtains the electronic ground state of a Na_2^+ molecule (the
+# nuclei are not in their minimum configuration). Note that there is only
+# one electron, since it makes use of pseudopotentials.
+#
+# Then, it propagates its  evolution under the influence of an electric 
+# field in the dipole approximation, first in the length gauge, and then 
+# in the velocity gauge.
+#
+# The test compares the z component of the dipole moment after 0.2 atomic
+# units. Note that the energies that will be obtained will not coincide,
+# since we are not using a gauge-independent energy expression.
+
+Input: 08-laser.01-ground_state.inp
+
+Input: 08-laser.02-length_gauge.inp
+match ;   n(t=0.2) ; LINE(td.general/multipoles, -1, 10) ;  2.000000000000e-01
+match ; <Z>(t=0.2) ; LINE(td.general/multipoles, -1, 90) ; -1.334845206979e-04
+
+Input: 08-laser.03-velocity_gauge.inp
+match ;   n(t=0.2) ; LINE(td.general/multipoles, -1, 10) ;  2.000000000000e-01
+match ; <Z>(t=0.2) ; LINE(td.general/multipoles, -1, 90) ; -1.332345613504e-04
+

@@ -1,0 +1,20 @@
+CalculationMode = em_resp
+Units = eV_Angstrom
+
+ResponseMethod = finite_differences
+EMStaticElectricField = 0.01
+
+ExperimentalFeatures = yes
+EMCalcBornCharges = yes
+BornChargeSumRuleCorrection = no
+
+SmearingFunction = methfessel_paxton
+Smearing = 0.5
+ExtraStates = 3
+
+%Coordinates
+  "Na" | -1.54 | 0 | 0
+  "Na" |  1.54 | 0 | 0
+%
+
+ConvRelDens=2e-8

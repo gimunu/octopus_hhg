@@ -1,0 +1,26 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 01-free_electrons.test 8321 2011-09-25 00:10:12Z xavier $
+
+Test       : Free Electron Bands in 1D
+Programs   : octopus; octopus_single; octopus_mpi
+TestGroups : short-run
+Enabled    : Yes
+
+Input: 01-free_electrons.01-ground_state.inp
+
+Input: 01-free_electrons.02-unocc.inp
+
+match ; Bands n=1,k=1; GREP(static/eigenvalues, '#k =   1', 12, 1) ; 0.000000
+match ; Bands n=1,k=2; GREP(static/eigenvalues, '#k =   2', 12, 1) ; 0.000493
+match ; Bands n=1,k=3; GREP(static/eigenvalues, '#k =   3', 12, 1) ; 0.001974
+match ; Bands n=1,k=4; GREP(static/eigenvalues, '#k =   4', 12, 1) ; 0.004441
+match ; Bands n=1,k=5; GREP(static/eigenvalues, '#k =   5', 12, 1) ; 0.007896
+match ; Bands n=1,k=6; GREP(static/eigenvalues, '#k =   6', 12, 1) ; 0.012337
+
+match ; Bands n=2,k=1; GREP(static/eigenvalues, '#k =   1', 12, 2) ; 0.049348
+match ; Bands n=2,k=2; GREP(static/eigenvalues, '#k =   2', 12, 2) ; 0.039972
+match ; Bands n=2,k=3; GREP(static/eigenvalues, '#k =   3', 12, 2) ; 0.031583
+match ; Bands n=2,k=4; GREP(static/eigenvalues, '#k =   4', 12, 2) ; 0.024181
+match ; Bands n=2,k=5; GREP(static/eigenvalues, '#k =   5', 12, 2) ; 0.017765
+match ; Bands n=2,k=6; GREP(static/eigenvalues, '#k =   6', 12, 2) ; 0.012337
+

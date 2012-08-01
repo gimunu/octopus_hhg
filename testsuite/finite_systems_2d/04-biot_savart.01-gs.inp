@@ -1,0 +1,49 @@
+CalculationMode = gs
+Dimensions = 2
+FromScratch = yes
+BoxShape = sphere
+Spacing = 0.07
+Radius = 6.0
+
+TheoryLevel = independent_particles
+
+%Species
+  "ring" | 1.0 | spec_user_defined | 1 | "-20.0/cosh(10.0*(r-3.0))^2"
+%
+
+%Coordinates
+  "ring" | 0 | 0 | 0
+%
+
+ExtraStates = 1
+%Occupations
+  0 | 1
+  0 | 0 
+%
+SpinComponents = polarized
+EigenSolver = cg_new
+EigenSolverTolerance = 1.0e-5
+EigenSolverMaxIter = 1000
+
+ConvRelDens = 1.0e-2
+
+# P_c is the speed of light in atomic units.
+P_c = 137.036
+%StaticMagneticField
+  0 | 0 | P_c*0.0001
+%
+
+Output = density + current + potential
+OutputHow = axis_y
+FlushMessages = yes
+
+%CurrentThroughPlane
+  0 | 0
+  1 | 0
+  0.1
+  0 | 70
+%
+
+CalculateSelfInducedMagneticField = yes
+
+LCAOStart = no

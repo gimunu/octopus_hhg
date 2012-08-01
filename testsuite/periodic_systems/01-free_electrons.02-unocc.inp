@@ -1,0 +1,45 @@
+# -*- coding: utf-8 mode: shell-script -*-
+# $Id: 01-free_electrons.02-unocc.inp 6937 2010-08-17 06:27:58Z dstrubbe $
+
+CalculationMode = unocc
+
+FromScratch = yes
+
+Dimensions = 1
+PeriodicDimensions = 1
+
+NumberUnoccStates = 4
+
+OnlyUserDef = yes
+TheoryLevel = independent_particles
+
+%Species
+"Zero" | 22.1 | spec_user_defined | 2 | "0"
+%
+
+%Coordinates
+ "Zero" | 0
+%
+
+BoxShape = parallelepiped
+
+%Lsize
+ 10.0
+%
+
+%Spacing
+ 0.5
+%
+
+%BoxOffset
+ 0.0
+%
+
+%KPoints
+0.1 | 0.000000
+0.2 | 0.031416
+0.2 | 0.062832
+0.2 | 0.094248
+0.2 | 0.125664
+0.1 | 0.157080
+%

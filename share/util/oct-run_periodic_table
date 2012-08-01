@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+#
+# Simple script to run octopus for all atoms in the 
+# periodic table for which pseudopotentials are available.
+#
+# $Id: oct-run_periodic_table 8933 2012-03-27 20:37:56Z dstrubbe $
+
+
+# the defaults file
+defaults=/usr/share/octopus/PP/defaults
+
+# the octopus executable
+octopus=/usr/bin/octopus
+
+ECHO=""
+fromScratch="yes"
+
+# usage
+function usage() {
+    cat <<EOF
+
+ Copyright (C) 2005 by Heiko Appel
+
+Usage: oct-run_periodic_table [options]
+    
+     -h              this message
+     -n              dry run mode (show what would be executed)
+     -s specie       run octopus for given specie
+     -a              run octopus for all atoms            
+     -r              do a restart, i.e. do not use fromScratch=yes
+     -t temperature  run with electronic temperature
+     -e no_states    use extra states
+     -x              octopus executable
+     -d              defaults file for pseudopotentials
+
+Report bugs to <appel@physik.fu-berlin.de>.
+EOF
+ exit 0;
+}
+
+
+# show usage info if no args at all
+[ "$#" -eq 0 ] && usage;
+
+# process command line options
+while getopts "hns:art:e:x:d:" opt ; do
+    case "$opt" in
+        h) usage ;;
+        n) ECHO="echo" ;; 
+        s) specie="$OPTARG" ;;
+        a) ECHO="" ;;
+        r) fromScratch="no" ;;
+        t) electronic_temp="$OPTARG" ;;
+        e) no_states="$OPTARG" ;;
+        x) octopus="$OPTARG" ;;
+        d) defaults="$OPTARG" ;;
+        ?) echo "Error parsing arguments"; exit 1 ;;
+    esac
+done
+shift $(( OPTIND - 1 ))
+
+# do we have all required files?
+if [ ! -x $octopus  ]; then 
+  echo "Error: could not find octopus executable: $octopus"
+  exit 1
+fi
+if [ ! -f $defaults ]; then 
+  echo "Error: could not find defaults file: $defaults"
+  exit 1
+fi
+
+if [ "$specie" = "" ]; then
+  # for which atoms are pseudopotentials available?
+  pseudos=$(awk '{ print $1 }' $defaults | grep -v "#")
+else
+  pseudos="$specie"
+fi
+
+# loop over all pseudopotentials
+for x in $pseudos; do
+
+  # TM2(100) or HGH(101)?
+  flavour=$(grep -E "${x}[[:space:]]" $defaults | grep -v "#" | awk '{ print $3 }'); 
+  # Extract atomic number
+  atomic_no=$(grep -E "${x}[[:space:]]" $defaults | grep -v "#" | awk '{ print $4 }'); 
+
+  # generate working directory
+  workdir=$(printf "%02d_%s\n" ${atomic_no} ${x})
+  $ECHO mkdir $workdir
+
+  # setup input file
+  if [ -d $workdir ]; then
+    {
+cat <<-EOF
+
+CalculationMode = gs
+fromScratch = $fromScratch
+
+%Coordinates
+  "$x" | 0 | 0 | 0
+%
+
+EOF
+    } > $workdir/inp 2>/dev/null
+
+    if [ "$electronic_temp" = "" ]; then
+	# append atomic configuration
+	/usr/bin/oct-atomic_occupations -s $x >> $workdir/inp
+    else
+
+    {
+cat <<-EOF
+
+ElectronicTemperature = $electronic_temp
+ExtraStates = $no_states
+
+EOF
+    } >> $workdir/inp 2>/dev/null
+    
+    fi
+
+  fi
+
+  # change to working directory
+  $ECHO pushd $workdir
+
+  # run octopus
+  echo "running $workdir ..."
+  $ECHO nice -n 19 $octopus
+
+  # change to previous directory
+  $ECHO popd
+
+done
