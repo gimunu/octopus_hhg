@@ -131,7 +131,10 @@ subroutine td_init(td, sys, hm)
   call kick_init(hm%ep%kick, sys%st%d%nspin, sys%gr%mesh%sb%dim)
 
   ! now the photoelectron stuff
-  call PES_init(td%PESv, sys%gr%mesh, sys%gr%sb, sys%st, sys%outp%iter,hm,td%max_iter,td%dt,sys)
+  call PES_init(td%PESv, sys%gr%mesh, sys%gr%sb, sys%st, sys%outp%iter,hm,td%max_iter,td%dt,sys)  
+
+  ! The harmonic spectrum 
+  call harmonic_spect_init(td%harms, sys%gr, td%dt )
 
   !%Variable TDDynamics
   !%Type integer
@@ -206,6 +209,8 @@ subroutine td_end(td)
   PUSH_SUB(td_end)
 
   call PES_end(td%PESv)
+  call harmonic_spect_end(td%harms)
+  
   call propagator_end(td%tr)  ! clean the evolution method
 
   if(td%dynamics == BO) call scf_end(td%scf)

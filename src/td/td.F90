@@ -33,6 +33,7 @@ module td_m
   use global_m
   use grid_m
   use ground_state_m
+  use harmonic_spect_m
   use hamiltonian_m
   use io_m
   use ion_dynamics_m
@@ -94,7 +95,8 @@ module td_m
     logical              :: recalculate_gs !< Recalculate ground-state along the evolution.
 
     type(PES_t)          :: PESv
-
+    type(harmonic_spect_t) :: harms
+    
     FLOAT                :: mu
     integer              :: dynamics
     integer              :: energy_update_iter
@@ -197,6 +199,7 @@ contains
 
     call messages_print_stress(stdout, "Time-Dependent Simulation")
     call print_header()
+    
 
     if(td%PESv%calc_rc .or. td%PESv%calc_mask) then
        if (fromScratch) then
@@ -328,6 +331,9 @@ contains
         call gauge_field_propagate_vel(hm%ep%gfield, gauge_force, td%dt)
       end if
 
+      !Harmonic spectrum
+      if(td%harms%calc) call harmonic_spect_calc(td%harms, st, ii)
+
       !Photoelectron stuff 
       if(td%PESv%calc_rc .or. td%PESv%calc_mask ) &
            call PES_calc(td%PESv, gr%mesh, st, ii, td%dt, hm%ab_pot,hm,geo,iter)
@@ -402,6 +408,7 @@ contains
 	!Photoelectron output and restart dump
         call PES_output(td%PESv, gr%mesh, st, iter, sys%outp, td%dt,gr,geo)
         call PES_restart_write(td%PESv, gr%mesh, st)
+        if(td%harms%calc) call harmonic_spect_out(td%harms, sys%outp)
         if( (ion_dynamics_ions_move(td%ions)) .and. td%recalculate_gs) then
           call messages_print_stress(stdout, 'Recalculating the ground state.')
           fromScratch = .false.
