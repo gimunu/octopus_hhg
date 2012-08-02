@@ -10,10 +10,12 @@ aclocal.m4
 *.o
 *.svn
 *.mod
-Makefile*
+Makefile
+Makefile.in
 *.a
 *.f90
-config*
+config.*
+configure
 src/utils/oct*
 src/main/oct*
 share/vari*
