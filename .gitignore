@@ -1,17 +1,16 @@
 an ignore specific files
 .DS_Store
 script
-#testsuite/oct-run_testsuite
 stamp-h1
-build/octopus.spec
+#build/octopus.spec
 aclocal.m4
 
 # Use wildcards as well
-*.o
+#*.o
 *.svn
-*.mod
-*.am
-Makefile
+#*.mod
+#*.am
+#Makefile
 Makefile.in
 !doc/htmp/icons
 !doc/html/icons/Makefile.in
@@ -20,14 +19,13 @@ Makefile.in
 #*.f90
 config.*
 configure
-src/utils/oct*
-src/main/oct*
-share/vari*
-._*
+#src/utils/oct*
+#src/main/oct*
+#share/vari*
+#._*
 
 # Can also ignore all directories and files in a directory.
 .svn/*
 autom4te.cache/*
 build-aux/*
-.deps
-#doc/*
+#.deps
