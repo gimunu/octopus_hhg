@@ -1,0 +1,112 @@
+o=head1 NAME
+
+oct-run_regression_test.pl - Script to create and run B<octopus> regression tests
+
+=head1 SYNOPSIS
+
+=over
+
+=item B<oct-run_regression_test.pl> [ option ]... [ file ]... 
+
+=back
+
+=head1 DESCRIPTION
+
+This script is one of the B<octopus> utilities. 
+
+This script can be used to generate and run the B<octopus> regression tests.
+
+The man pages of Octopus and of the auxiliary Octopus
+sub-programs (oct-something) are not intended to contain the
+documentation of the programs, but only their basic
+description. For where to find more documentation, see the
+L<SEE ALSO> section below.
+
+=over
+
+=item B<-n>
+
+Dry run. Don't run the test. Only print what would be executed.
+
+=item B<-v>
+
+Run in verbose mode. Useful for debugging the script.
+
+=item B<-h>
+
+Show a brief summary of command-line options.
+
+=item B<-D> I<DIR>
+
+Directory where to look for the Octopus executables.
+
+=item B<-s> I<SUFFIX>
+
+Suffix to append to the base executable name.
+
+=item B<-c> I<file>
+
+Create a template for a Octopus regression test. This should always be used if you
+create a new regression test.
+
+=item B<-f> I<file>
+
+This option specifies the input file for a regression test.
+
+=item B<-i>
+
+Print content of the Octopus input file which is used for the current test to stdout.
+
+=item B<-p>
+
+Preserve working directory. Don't clean up the temporary working directory after the run.
+
+=item B<-l>
+
+Copy outout log to current working directory.
+
+=item B<-m>
+
+Run matches only (assumes there are work directories present).
+
+=back 
+
+=head1 EXAMPLES
+
+To create a template for a regression test run, e.g.
+
+	oct-run_regression_test.pl -c finite_systems_3d/sodium.test
+
+Running a test can be achieved with
+
+	oct-run_regression_test.pl -f finite_systems_3d/sodium.test
+
+If a test run fails it might be useful for bug-tracing to preserve the working directory
+of this run and to print out the input file
+
+ 	oct-run_regression_test.pl -pi -f finite_systems_3d/sodium.test
+
+Run an MPI test with a local directory as working directory
+
+	oct-run_regression_test.pl -f benzene.test -D $PWD/../src -s _mpi
+
+=head1 AUTHOR
+
+Written by H. Appel.
+
+=head1 REPORTING BUGS
+
+Report bugs to <appel@physik.fu-berlin.de>.
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005 H. Appel.
+
+This is free software; see the source for copying conditions.  There
+is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+
+=head1 SEE ALSO
+
+The largest source of documentation is the Octopus
+wiki: S<http://www.tddft.org/programs/octopus/wiki/>.

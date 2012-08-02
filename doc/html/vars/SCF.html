@@ -1,0 +1,511 @@
+
+<html>
+<head>
+
+<style>
+   BODY {background-color: white; 
+         font-size: 10pt; font-family: verdana,helvetica;}
+   A  {text-decoration: none;color: blue}
+</style>
+</head>
+<body>
+
+<a name='SCF'</a>
+<H2>SCF</H2>
+
+
+<p><b><a name='GuessMagnetDensity'></a>GuessMagnetDensity</b>
+<br/><i>Section</i>: SCF
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: ferromagnetic
+<br/><br> The guess density for the SCF cycle is just the sum of all the atomic densities.
+ When performing spin-polarized or non-collinear-spin calculations this option sets
+ the guess magnetization density.
+<br><br>
+ For anti-ferromagnetic configurations, the <tt>user_defined</tt> option should be used.
+<br><br>
+ Note that if the <tt>paramagnetic</tt> option is used, the final ground state will also be
+ paramagnetic, but the same is not true for the other options.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>paramagnetic</b>:  Magnetization density is zero.
+</li>
+<li><b>ferromagnetic</b>:  Magnetization density is the sum of the atomic magnetization densities.
+</li>
+<li><b>random</b>:  Each atomic magnetization density is randomly rotated.
+</li>
+<li><b>user_defined</b>:  The atomic magnetization densities are rotated so that the magnetization
+ vector has the same direction as a vector provided by the user. In this case,
+ the <tt>AtomsMagnetDirection</tt> block has to be set.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='LCAOStart'></a>LCAOStart</b>
+<br/><i>Section</i>: SCF
+<br/><i>Type</i>: integer
+<br/><br> Before starting a SCF calculation, <tt>Octopus</tt> can perform
+ a LCAO calculation. These can provide <tt>Octopus</tt> with a good set
+ of initial wavefunctions and with a new guess for the density.
+ (Up to the current version, only a minimal basis set is used.)
+ The default is <tt>lcao_full</tt> unless all species are user-defined, in which case
+ the default is <tt>lcao_none</tt>.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>lcao_none</b>:  Do not perform a LCAO calculation before the SCF cycle. Instead use random wavefunctions.
+</li>
+<li><b>lcao_states</b>:  Do a LCAO calculation before the SCF cycle and use the resulting wavefunctions as
+ initial wavefunctions without changing the guess density.
+ This will speed up the convergence of the eigensolver during the first SCF iterations.
+</li>
+<li><b>lcao_full</b>:  Do a LCAO calculation before the SCF cycle and use the LCAO wavefunctions to build a new
+ guess density and a new KS potential.
+ Using the LCAO density as a new guess density may improve the convergence, but can
+ also slow it down or yield wrong results (especially for spin-polarized calculations).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='SCFCalculateDipole'></a>SCFCalculateDipole</b>
+<br/><i>Section</i>: SCF
+<br/><i>Type</i>: logical
+<br/><br> This variable controls whether the dipole is calculated at the
+ end of a self-consistent iteration. For finite systems the
+ default is yes. For periodic systems the default is no, unless
+ an electric field is being applied in a periodic direction.
+ The single-point Berry`s phase approximation is used for
+ periodic directions.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='SCFCalculateForces'></a>SCFCalculateForces</b>
+<br/><i>Section</i>: SCF
+<br/><i>Type</i>: logical
+<br/><br> This variable controls whether the forces on the ions are
+ calculated at the end of a self-consistent iteration. The
+ default is yes, unless the system only has user-defined
+ species.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='SCFinLCAO'></a>SCFinLCAO</b>
+<br/><i>Section</i>: SCF
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> Performs the SCF cycle with the calculation restricted to the LCAO subspace.
+ This may be useful for systems with convergence problems (first do a
+ calculation within the LCAO subspace, then restart from that point for
+ an unrestricted calculation).
+
+</p><hr width='30%' align='left'/>
+
+<a name='SCF::Convergence'</a>
+<H2>SCF::Convergence</H2>
+
+
+<p><b><a name='ConvAbsDens'></a>ConvAbsDens</b>
+<br/><i>Section</i>: SCF::Convergence
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0
+<br/><br> Absolute convergence of the density:
+<br><br>
+ <math>\epsilon = \int {\rm d}^3r \vert \rho^{out}(\bf r) -\rho^{inp}(\bf r) \vert</math>.
+<br><br>
+ A zero value (the default) means do not use this criterion.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ConvAbsEv'></a>ConvAbsEv</b>
+<br/><i>Section</i>: SCF::Convergence
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0
+<br/><br> Absolute convergence of the sum of the eigenvalues:
+<br><br>
+ <math> \epsilon = \vert \sum_{j=1}^{N_{occ}} \epsilon_j^{out} - \sum_{j=1}^{N_{occ}} \epsilon_j^{inp} \vert </math>
+<br><br>
+ A zero value (the default) means do not use this criterion.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ConvForce'></a>ConvForce</b>
+<br/><i>Section</i>: SCF::Convergence
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0
+<br/><br> Absolute convergence of the forces: maximum variation of any
+ component of the ionic forces in consecutive iterations.  A
+ zero value means do not use this criterion. The default is
+ zero, except for geometry optimization, which sets a default of
+ 1e-8.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ConvRelDens'></a>ConvRelDens</b>
+<br/><i>Section</i>: SCF::Convergence
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1e-5
+<br/><br> Relative convergence of the density:
+<br><br>
+ <math>\epsilon = {1\over N} ConvAbsDens</math>.
+<br><br>
+ <i>N</i> is the total number of electrons in the problem.  A
+ zero value means do not use this criterion.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ConvRelEv'></a>ConvRelEv</b>
+<br/><i>Section</i>: SCF::Convergence
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0
+<br/><br> Relative convergence of the sum of the eigenvalues:
+<br><br>
+ <math>\epsilon = \vert \sum_{j=1}^{N_{occ}} ( \epsilon_j^{out} -  \epsilon_j^{inp} ) \vert
+ \over \vert \sum_{j=1}^{N_{occ}} \epsilon_j^{out} \vert </math>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MaximumIter'></a>MaximumIter</b>
+<br/><i>Section</i>: SCF::Convergence
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 200
+<br/><br> Maximum number of SCF iterations. The code will stop even if convergence
+ has not been achieved. -1 means unlimited.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MaximumIterBerry'></a>MaximumIterBerry</b>
+<br/><i>Section</i>: SCF::Convergence
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 10
+<br/><br> Maximum number of iterations for the Berry potential, within each SCF iteration.
+ Only applies if a <tt>StaticElectricField</tt> is applied in a periodic direction.
+ The code will move on to the next SCF iteration even if convergence
+ has not been achieved. -1 means unlimited.
+
+</p><hr width='30%' align='left'/>
+
+<a name='SCF::EigenSolver'</a>
+<H2>SCF::EigenSolver</H2>
+
+
+<p><b><a name='EigenSolverArnoldiVectors'></a>EigenSolverArnoldiVectors</b>
+<br/><i>Section</i>: SCF::EigenSolver
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 20
+<br/><br> This indicates how many Arnoldi vectors are generated
+ It must satisfy EigenSolverArnoldiVectors - Number Of Eigenvectors >= 2.
+ See the ARPACK documentation for more details. It will default to
+ twice the number of eigenvectors (which is the number of states)
+
+</p><hr width='30%' align='left'/>
+
+<a name='SCF::Eigensolver'</a>
+<H2>SCF::Eigensolver</H2>
+
+
+<p><b><a name='Eigensolver'></a>Eigensolver</b>
+<br/><i>Section</i>: SCF::Eigensolver
+<br/><i>Type</i>: integer
+<br/><br> Which eigensolver to use to obtain the lowest eigenvalues and
+ eigenfunctions of the Kohn-Sham Hamiltonian. The default is
+ conjugate gradients (<tt>cg</tt>); when parallelization in states is
+ enabled, the default is <tt>lobpcg</tt>.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>rmmdiis</b>:  Residual minimization scheme, direct inversion in the
+ iterative subspace eigensolver, based on the implementation of
+ Kresse and Furthmüller [<i>Phys. Rev. B</i> <b>54</b>, 11169
+ (1996)]. This eigensolver requires almost no orthogonalization
+ so it can be considerably faster than the other options for
+ large systems; however it might suffer stability problems. To
+ improve its performance a large number of <tt>ExtraStates</tt>
+ are required (around 10-20% of the number of occupied states).
+</li>
+<li><b>plan</b>:  Preconditioned Lanczos scheme.
+</li>
+<li><b>arpack</b>:  Implicitly Restarted Arnoldi Method. Requires the ARPACK package.
+ method.
+</li>
+<li><b>cg</b>:  Conjugate-gradients algorithm.
+</li>
+<li><b>cg_new</b>:  An alternative conjugate-gradients eigensolver, faster for
+ larger systems but less mature.
+</li>
+<li><b>multigrid</b>:  (Experimental) Multigrid eigensolver.
+</li>
+<li><b>lobpcg</b>:  (Experimental) Locally optimal block-preconditioned
+ conjugate-gradient algorithm. Ref: A. Knyazev, Toward the
+ Optimal Preconditioned Eigensolver: Locally Optimal Block
+ Preconditioned Conjugate Gradient Method, <i>SIAM Journal on
+ Scientific Computing</i>, 23(2):517-541, 2001.
+</li>
+<li><b>evolution</b>:  Propagation in imaginary time. WARNING: Sometimes it misbehaves. Use with
+ caution.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='EigensolverImaginaryTime'></a>EigensolverImaginaryTime</b>
+<br/><i>Section</i>: SCF::Eigensolver
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 10.0
+<br/><br> The imaginary-time step that is used in the imaginary-time evolution
+ method (<tt>Eigensolver = evolution</tt>) to obtain the lowest eigenvalues/eigenvectors.
+ It must satisfy <tt>EigensolverImaginaryTime > 0</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='EigensolverMaxIter'></a>EigensolverMaxIter</b>
+<br/><i>Section</i>: SCF::Eigensolver
+<br/><i>Type</i>: integer
+<br/><br> Determines the maximum number of iterations that the
+ eigensolver will perform if the desired tolerance is not
+ achieved. The default is 25 iterations for all eigensolvers
+ except for <tt>rmdiis</tt>, which performs only 3 iterations (only
+ increase it if you know what you are doing).
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='EigensolverMinimizationIter'></a>EigensolverMinimizationIter</b>
+<br/><i>Section</i>: SCF::Eigensolver
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 5
+<br/><br> During the first iterations, the RMMDIIS eigensolver requires
+ some steepest-descent minimizations to improve
+ convergence. This variable determines the number of those
+ minimizations. The default is 5.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='EigensolverSubspaceDiag'></a>EigensolverSubspaceDiag</b>
+<br/><i>Section</i>: SCF::Eigensolver
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: yes
+<br/><br> Allows you to turn off subspace diagonalization during the diagonalization of
+ the Hamiltonian. Subspace diagonalization sometimes creates problems when restarting
+ unoccupied-states calculations with a larger number of unoccupied states.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='EigensolverTolerance'></a>EigensolverTolerance</b>
+<br/><i>Section</i>: SCF::Eigensolver
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1.0e-6
+<br/><br> This is the tolerance for the eigenvectors. The default is 1e-6.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='Preconditioner'></a>Preconditioner</b>
+<br/><i>Section</i>: SCF::Eigensolver
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: filter
+<br/><br> Which preconditioner to use in order to solve the Kohn-Sham equations or
+ the linear-response equations. May apply prefix of linear-response (<i>e.g.</i>
+ <tt>EM</tt>, <tt>KdotP</tt>, <tt>VM</tt>) to differentiate from choice for ground state.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>no</b>:  Do not apply preconditioner.
+</li>
+<li><b>pre_filter</b>:  Filter preconditioner.
+</li>
+<li><b>pre_jacobi</b>:  Jacobi preconditioner. Only the local part of the pseudopotential is used.
+ Not very helpful.
+</li>
+<li><b>pre_poisson</b>:  Uses the full Laplacian as preconditioner. The inverse is calculated through
+ the solution of the Poisson equation. This is, of course, very slow.
+</li>
+<li><b>pre_multigrid</b>:  Multigrid preconditioner.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='SubspaceDiagonalization'></a>SubspaceDiagonalization</b>
+<br/><i>Section</i>: SCF::Eigensolver
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: standard
+<br/><br> Selects the method to perform subspace diagonalization. The
+ default is <tt>standard</tt>, unless states parallelization is used,
+ when the default is <tt>scalapack</tt>.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>standard</b>:  The standard routine. Can be used with domain parallelization but not
+ state parallelization.
+</li>
+<li><b>old</b>:  Old routine, compatible with states parallelization.
+</li>
+<li><b>scalapack</b>:  State-parallelized version using ScaLAPACK. (Requires that
+ Octopus was compiled with ScaLAPACK support.)
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+<a name='SCF::LCAO'</a>
+<H2>SCF::LCAO</H2>
+
+
+<p><b><a name='LCAOAlternative'></a>LCAOAlternative</b>
+<br/><i>Section</i>: SCF::LCAO
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> If this variable is set, the LCAO procedure will use an
+ alternative (and experimental) implementation. It is faster for
+ large systems and parallel in states.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='LCAODiagTol'></a>LCAODiagTol</b>
+<br/><i>Section</i>: SCF::LCAO
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1e-10
+<br/><br> The tolerance for the diagonalization of the LCAO Hamiltonian. The default is 1e-10.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='LCAODimension'></a>LCAODimension</b>
+<br/><i>Section</i>: SCF::LCAO
+<br/><i>Type</i>: integer
+<br/><br> Before starting the SCF cycle, an initial LCAO calculation can be performed
+ in order to obtain reasonable initial guesses for spin-orbitals and densities.
+ For this purpose, the code calculates a number of atomic orbitals -- this
+ number depends on the given species. The default dimension for the LCAO basis
+ set will be the sum of all these numbers, unless this dimension is larger than
+ twice the number of required orbitals for the full calculation.
+<br><br>
+ This dimension however can be changed by making use of this
+ variable. Note that <tt>LCAODimension</tt> cannot be smaller than the
+ number of orbitals needed in the full calculation -- if
+ <tt>LCAODimension</tt> is smaller, it will be silently increased to meet
+ this requirement. In the same way, if <tt>LCAODimension</tt> is larger
+ than the available number of atomic orbitals, it will be
+ reduced. If you want to use the largest possible number, set
+ <tt>LCAODimension</tt> to a negative number.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='LCAOExtraOrbitals'></a>LCAOExtraOrbitals</b>
+<br/><i>Section</i>: SCF::LCAO
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> (experimental) If this variable is set to yes, the LCAO
+ procedure will add an extra set of numerical orbitals (by
+ using the derivative of the radial part of the original
+ orbitals).
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='LCAOKeepOrbitals'></a>LCAOKeepOrbitals</b>
+<br/><i>Section</i>: SCF::LCAO
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: yes
+<br/><br> If set to yes (the default) Octopus keeps atomic orbitals in
+ memory during the LCAO procedure. If set to no, the orbitals
+ are generated each time that they are needed, increasing
+ computational time but saving memory.
+<br><br>
+ When set to yes, Octopus prints the amount of memory per node
+ that is required to store the orbitals.
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+<a name='SCF::Mixing'</a>
+<H2>SCF::Mixing</H2>
+
+
+<p><b><a name='MixField'></a>MixField</b>
+<br/><i>Section</i>: SCF::Mixing
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: density
+<br/><br> Selects what should be mixed during the SCF cycle.  Note that
+ currently the exact-exchange part of hybrid functionals is not
+ mixed at all, which would require wavefunction-mixing, not yet
+ implemented. This may lead to instabilities in the SCF cycle,
+ so starting from a converged LDA/GGA calculation is recommended
+ for hybrid functionals. The default depends on the <tt>TheoryLevel</tt>
+ and the exchange-correlation potential used.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>none</b>:  No mixing is done. This is the default for independent
+ particles.
+</li>
+<li><b>potential</b>:  The Kohn-Sham potential is mixed. This is the default for OEP
+ or MGGA calculations, or if <tt>StaticElectricField</tt> is applied in
+ a periodic direction.
+</li>
+<li><b>density</b>:  Mix the density. This is the default for other cases, including
+ LDA/GGA calculations.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MixNumberSteps'></a>MixNumberSteps</b>
+<br/><i>Section</i>: SCF::Mixing
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 3
+<br/><br> In the Broyden and GR-Pulay schemes, the new input density or potential is constructed
+ from the values of the densities/potentials of a given number of previous iterations.
+ This number is set by this variable. Must be greater than 1.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='Mixing'></a>Mixing</b>
+<br/><i>Section</i>: SCF::Mixing
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.3
+<br/><br> Both the linear and the Broyden scheme depend on a "mixing parameter", set by this variable.  Must be 0 < <tt>Mixing</tt> <= 1.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TypeOfMixing'></a>TypeOfMixing</b>
+<br/><i>Section</i>: SCF::Mixing
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: broyden
+<br/><br> The scheme used to produce, at each iteration in the self-consistent cycle
+ that attempts to solve the Kohn-Sham equations, the input density from the value
+ of the input and output densities of previous iterations.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>linear</b>:  Simple linear mixing.
+</li>
+<li><b>gr_pulay</b>:  "Guaranteed-reduction" Pulay scheme [D. R. Bowler and M. J. Gillan, <i>Chem. Phys.
+ Lett.</i> <b>325</b>, 473 (2000)].
+</li>
+<li><b>broyden</b>:  Broyden scheme [C. G Broyden, <i>Math. Comp.</i> <b>19</b>, 577 (1965);
+ D. D. Johnson, <i>Phys. Rev. B</i> <b>38</b>, 12807 (1988)].
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+</body>
+</html>

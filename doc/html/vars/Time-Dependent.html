@@ -1,0 +1,1269 @@
+
+<html>
+<head>
+
+<style>
+   BODY {background-color: white; 
+         font-size: 10pt; font-family: verdana,helvetica;}
+   A  {text-decoration: none;color: blue}
+</style>
+</head>
+<body>
+
+<a name='Time-Dependent'</a>
+<H2>Time-Dependent</H2>
+
+
+<p><b><a name='TDExternalFields'></a>TDExternalFields</b>
+<br/><i>Section</i>: Time-Dependent
+<br/><i>Type</i>: block
+<br/><br> The block <tt>TDExternalFields</tt> describes the type and shape of time-dependent
+ external perturbations that are applied to the system.
+<br><br>
+ Each line of the block describes an external field; this way you can actually have more
+ than one laser (<i>e.g.</i> a "pump" and a "probe").
+<br><br>
+ The syntax of each line is:
+<br><br>
+ <tt>%TDExternalField
+ <br>&nbsp;&nbsp; type | ...other descriptors...
+ <br>%</tt>
+<br><br>
+ The first element of each line describes which kind of external field is described
+ by the line: (i) an electric field (<tt>electric_field</tt>); (ii) a magnetic field
+ (<tt>magnetic_field</tt>); (iii) a vector potential (<tt>vector_potential</tt>) -- this option,
+ in the current version, is a field constant in space, which permits us to describe
+ an electric perturbation in the velocity gauge; (iv) an arbitrary scalar potential
+ (<tt>scalar_potential</tt>).
+<br><br>
+ The "other descriptors" depend on which kind of external field has been indicated in
+ the first column.
+<br><br>
+ (A) type = <tt>electric field, magnetic field, vector_potential</tt>
+<br><br>
+ For these cases, the syntax is:
+<br><br>
+ <tt>%TDExternalFields
+ <br>&nbsp;&nbsp; type | nx | ny | nz | omega | envelope_function_name
+ <br>%</tt>
+<br><br>
+ The three (possibly complex) numbers (<i>nx</i>, <i>ny</i>, <i>nz</i>) mark the polarization
+ direction of the field. The float <tt>omega</tt> will be the carrier frequency of the
+ pulse. The envelope of the field is a time-dependent function whose definition
+ must be given in a <tt>TDFunctions</tt> block. <tt>envelope_function_name</tt> is a string (and therefore
+ it must be surrounded by quotation marks) that must match one of the function names
+ given in the first column of the <tt>TDFunctions</tt> block.
+<br><br>
+ (B) type = <tt>scalar_potential</tt>
+<br><br>
+ <tt>%TDExternalFields
+ <br>&nbsp;&nbsp; scalar_potential | "scalar_expression" | freq | envelope_function_name
+ <br>%</tt>
+<br><br>
+ The scalar potential is not just a dipole, but any expression given by the string
+ "scalar_expression". The temporal shape is determined by the envelope function
+ defined by <tt>envelope_function_name</tt>.
+<br><br>
+ A NOTE ON UNITS:
+<br><br>
+ It is very common to describe the strength of a laser field by its intensity, rather
+ than using the electric-field amplitude. In atomic units (or, more precisely, in any
+ Gaussian system of units), the relationship between instantaneous electric field
+ and intensity is:
+ <math> I(t) = \frac{c}{8\pi} E^2(t) </math>.
+<br><br>
+ It is common to read intensities in W/cm^2. The dimensions of intensities are
+ [W]/(L^2T), where [W] are the dimensions of energy. The relevant conversion factors
+ are:
+<br><br>
+ <math> Hartree / (a_0^2 atomic_time) = 6.4364086e+15 W / cm^2 </math>
+<br><br>
+ <math> eV / ( angstrom^2 (hbar/eV) ) = 2.4341348e+12 W / cm^2 </math>
+<br><br>
+ If, in atomic units, we set the electric-field amplitude to <math>E_0</math>,
+ then the intensity is:
+<br><br>
+ <math> I_0 = 3.51 10^16 W/cm^2 (E_0^2) </math>
+<br><br>
+ If, working with "Units = ev_angstrom", we set <math>E_0</math>, then the intensity is:
+<br><br>
+ <math> I_0 = 1.327 10^13 (E_0^2) W/cm^2 </math>
+<br><br>
+
+<br/><i>Options</i>:
+<ul>
+<li><b>electric_field</b>:  The external field is an electric field, the usual case when we want to describe a
+ laser in the length gauge.
+</li>
+<li><b>magnetic_field</b>:  The external field is a (homogeneous) time-dependent magnetic field.
+</li>
+<li><b>vector_potential</b>:  The external field is a time-dependent homogeneous vector potential, which may describe
+ a laser field in the velocity gauge.
+</li>
+<li><b>scalar_potential</b>:  The external field is an arbitrary scalar potential, which may describe an
+ inhomogeneous electrical field.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDFreezeOrbitals'></a>TDFreezeOrbitals</b>
+<br/><i>Section</i>: Time-Dependent
+<br/><i>Type</i>: integer
+<br/><br> You have the possibility of "freezing" a number of orbitals during a time-propagation.
+ The Hartree and exchange-correlation potential due to these orbitals (which
+ will be the lowest-energy ones) will be added during the propagation, but the orbitals
+ will not be propagated.
+<br><br>
+ <b>WARNING: NOT TESTED YET.</b>
+
+<br/><i>Options</i>:
+<ul>
+<li><b>sae</b>:  Single-active-electron approximation. This option is only valid for time-dependent
+ calculations (<tt>CalculationMode = td</tt>). Also, the nuclei should not move.
+ The idea is that all orbitals except the last one are frozen. The orbitals are to
+ be read from a previous ground-state calculation. The active orbital is then treated
+ as independent (whether it contains one electron or two) -- although it will
+ feel the Hartree and exchange-correlation potentials from the ground-state electronic
+ configuration.
+<br><br>
+ It is almost equivalent to setting <tt>TDFreezeOrbitals = N-1</tt>, where <tt>N</tt> is the number
+ of orbitals, but not completely.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDFunctions'></a>TDFunctions</b>
+<br/><i>Section</i>: Time-Dependent
+<br/><i>Type</i>: block
+<br/><br> This block specifies the shape of a "time-dependent function", such as the
+ envelope needed when using the <tt>TDExternalFields</tt> block. Each line in the block
+ specifies one function. The first element of each line will be a string
+ that defines the name of the function. The second element specifies which type
+ of function we are using; in the following we provide an example for each of the
+ possible types:
+<br><br>
+    (1) <tt>tdf_cw</tt>
+<br><br>
+ <tt>%TDFunctions
+ <br>&nbsp;&nbsp; "function-name" | tdf_cw | amplitude
+ <br>%</tt>
+<br><br>
+ The function is just a constant of value <tt>amplitude</tt>.
+<br><br>
+ <math> f(t) = amplitude
+<br><br>
+    (2) <tt>tdf_gaussian</tt>
+<br><br>
+ <tt>%TDFunctions
+ <br>&nbsp;&nbsp; "function-name" | tdf_gaussian | amplitude | tau0 | t0
+ <br>%</tt>
+<br><br>
+ The function is a Gaussian:
+<br><br>
+ <math> f(t) = F_0 exp( - (t-t_0)/(2\tau_0^2) ) </math>
+<br><br>
+ <math>F_0</math> = amplitude.
+<br><br>
+    (3) <tt>tdf_cosinoidal</tt>
+<br><br>
+ <tt>%TDFunctions
+ <br>&nbsp;&nbsp; "function-name" | tdf_cosinoidal | amplitude | tau0 | t0
+ <br>%</tt>
+<br><br>
+ <math> f(t) =  F_0 cos( \pi/2 \frac{t-2\tau_0-t_0}{\tau0} )  </math>
+<br><br>
+ If <math> | t - t_0 | > \tau_0 </math>, then <math> f(t) = 0 </math>.
+<br><br>
+    (4) <tt>tdf_trapezoidal</tt>
+<br><br>
+ <tt>%TDFunctions
+ <br>&nbsp;&nbsp; "function-name" | tdf_trapezoidal | amplitude | tau0 | t0 | tau1
+ <br>%</tt>
+<br><br>
+ The function ramps linearly during <math>tau_1</math> time units, stays constant for
+ <math>tau_0</math> time units, and the decays to zero linearly again for <math>tau_1</math>
+ time units.
+<br><br>
+    (5) <tt>tdf_from_file</tt>
+<br><br>
+ <tt>%TDFunctions
+ <br>&nbsp;&nbsp; "function-name" | tdf_from_file | "filename"
+ <br>%</tt>
+<br><br>
+ The temporal shape of the function is contained in a file called <tt>filename</tt>. This file
+ should contain three columns: first column is time, second and third column are the
+ real part and the imaginary part of the temporal function <i>f</i>(<i>t</i>).
+<br><br>
+    (A.6) <tt>tdf_from_expr</tt>
+<br><br>
+ <tt>%TDFunctions
+ <br>&nbsp;&nbsp; "function-name" | tdf_from_expr | "expression"
+ <br>%</tt>
+<br><br>
+ The temporal shape of the field is given as an expression (e.g., "cos(2.0*t)". The
+ letter <i>t</i> means time, obviously. The expression is used to construct the function <i>f</i>
+ that defines the field:
+<br><br>
+
+<br/><i>Options</i>:
+<ul>
+<li><b>tdf_cw</b>:  Explained above.
+</li>
+<li><b>tdf_gaussian</b>:  Explained above.
+</li>
+<li><b>tdf_cosinoidal</b>:  Explained above.
+</li>
+<li><b>tdf_trapezoidal</b>:  Explained above.
+</li>
+<li><b>tdf_from_file</b>:  Explained above.
+</li>
+<li><b>tdf_from_expr</b>:  Explained above.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+<a name='Time-Dependent::Absorbing Boundaries'</a>
+<H2>Time-Dependent::Absorbing Boundaries</H2>
+
+
+<p><b><a name='ABHeight'></a>ABHeight</b>
+<br/><i>Section</i>: Time-Dependent::Absorbing Boundaries
+<br/><i>Type</i>: float
+<br/><i>Default</i>: -0.2 a.u.
+<br/><br> When <tt>AbsorbingBoundaries = sin2</tt>, this is the height of the imaginary potential.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ABWidth'></a>ABWidth</b>
+<br/><i>Section</i>: Time-Dependent::Absorbing Boundaries
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.4 a.u.
+<br/><br> Width of the region used to apply the absorbing boundaries.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='AbsorbingBoundaries'></a>AbsorbingBoundaries</b>
+<br/><i>Section</i>: Time-Dependent::Absorbing Boundaries
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: not_absorbing
+<br/><br> To improve the quality of the spectra by avoiding the formation of
+ standing density waves, one can make the boundaries of the simulation
+ box absorbing.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>not_absorbing</b>:  No absorbing boundaries.
+</li>
+<li><b>sin2</b>:  A <math>\sin^2</math> imaginary potential is added at the boundaries.
+</li>
+<li><b>mask</b>:  A mask is applied to the wavefunctions at the boundaries.
+</li>
+<li><b>exact</b>:  NOT WORKING YET!
+ An exactly absorbing scheme is used for open boundaries. This feature
+ comes from transport calculation and assumes that on <tt>OpenBoundariesNLeads</tt>
+ sides there is a lead connected. No outgoing density is reflected within the leads,
+ but some minor reflection will occur on the corners of the box.
+ This is due to the setup of semi-infinite finite width leads connected to the sides.
+ Warning: This scheme works only with the special Cranck-Nicholson propagator and has
+ quadratic scaling with time. It may be tuned with the parameter <tt>OpenBoundariesMaxMemCoeffs</tt>.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+<a name='Time-Dependent::Open Boundaries'</a>
+<H2>Time-Dependent::Open Boundaries</H2>
+
+
+<p><b><a name='MemoryMaxIter'></a>MemoryMaxIter</b>
+<br/><i>Section</i>: Time-Dependent::Open Boundaries
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 500
+<br/><br> Sets the maximum iteration number to converge the memory coefficients.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MemoryTol'></a>MemoryTol</b>
+<br/><i>Section</i>: Time-Dependent::Open Boundaries
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1e-12
+<br/><br> Decides when to consider the memory coefficients converged.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Time-Dependent::PES'</a>
+<H2>Time-Dependent::PES</H2>
+
+
+<p><b><a name='PESMaskEnlargeLev'></a>PESMaskEnlargeLev</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: integer
+<br/><br> Mask box enlargement level. Enlarges the mask bounding box by a factor 2**<tt>PESMaskEnlargeLev</tt>.
+ This will avoid wavefunction wrapping at the boundaries.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskFilterCutOff'></a>PESMaskFilterCutOff</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: float
+<br/><i>Default</i>: -1
+<br/><br> In calculation with <tt>PESMaskMode = fullmask_mode</tt> and NFFT, spurious frequencies
+ may lead to numerical instability of the algorithm. This option gives the possibility
+ to filter out the unwanted components by setting an energy cut-off.
+ If <tt>PESMaskFilterCutOff = -1</tt> no filter is applied.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskIncludePsiA'></a>PESMaskIncludePsiA</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> Add the contribution of \Psi_A in the mask region to the photo-electron spectrum.
+ Literally adds the Fourier components of:
+ \Theta(r-R1)*\Psi_A(r)
+ with \Theta being the Heaviside step function.
+ With this option PES will contain all the contributions starting from the inner
+ radius R1. Use this option to improve convergence with respect to the box size
+ and total simulation time.
+ Note: carefully choose R1 in order to avoid contributions from returning electrons.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskMode'></a>PESMaskMode</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: mask_mode
+<br/><br> PES calculation mode.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>mask_mode</b>:  Mask method.
+</li>
+<li><b>fullmask_mode</b>:  Full mask method. This includes a back action of the momentum-space states on the
+ interaction region. This enables electrons to come back from the continuum.
+</li>
+<li><b>passive_mode</b>:  Passive analysis of the wf. Simply analyze the plane-wave components of the
+ wavefunctions on the region <i>r</i> > <i>R1</i>. This mode employs a step masking function by default.
+</li>
+<li><b>psf_mode</b>:  Phase-space filter. Implementation not complete.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskNFFTEnlargeLev'></a>PESMaskNFFTEnlargeLev</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: integer
+<br/><br> Mask box enlargement level. Enlarges the mask box by a factor 2**<tt>PESMaskEnlargeLev</tt>
+ using NFFT. This way we add two points in each direction at a distance
+ L=Lb*2**<tt>PESMaskEnlargeLev</tt> where <i>Lb</i> is the box size.
+<br><br>
+ Note: the corresponding Fourier space is restricted by the same factor.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskOutputInterpolate'></a>PESMaskOutputInterpolate</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> Use interpolation to evaluate the quantities in polar coordinates.
+ NOTE: In 3D this is practically prohibitive in the present implemetation.
+ We suggest to use the postprocessing tool <tt>oct-photoelectron_spectrum</tt> in this case.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskPlaneWaveProjection'></a>PESMaskPlaneWaveProjection</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: fft_map
+<br/><br> With the mask method, wavefunctions in the continuum are treated as plane waves.
+ This variable sets how to calculate the plane-wave projection in the buffer
+ region. We perform discrete Fourier transforms (DFT) in order to approximate
+ a continuous Fourier transform. The major drawback of this approach is the built-in
+ periodic boundary condition of DFT. Choosing an appropriate plane-wave projection
+ for a given simulation in addition to <tt>PESMaskEnlargeLev</tt> and
+ <tt>PESMaskNFFTEnlargeLev</tt>will help to converge the results.
+<br><br>
+ NOTE: depending on the value of <tt>PESMaskMode</tt> <tt>PESMaskPlaneWaveProjection</tt>,
+ may affect not only performance but also the time evolution of the density.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>integral</b>:  Direct integration_map.
+</li>
+<li><b>fft_out</b>:  FFT filtered in order to keep only outgoing waves. 1D only.
+</li>
+<li><b>fft_map</b>:  FFT transform.
+</li>
+<li><b>tdpsf_map</b>:  Time-dependent phase-space filter map.
+</li>
+<li><b>nfft_map</b>:  Non-equispaced FFT map.
+</li>
+<li><b>pfft_map</b>:  Use PFFT libraries.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskPropagator'></a>PESMaskPropagator</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: volkov
+<br/><br> Photoelectron waves time-propagation operator in momentum space.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>free</b>:  Free plane-wave propagation.
+</li>
+<li><b>volkov</b>:  Plane wave evolves with exp(i(p-A(t)/c)^2*dt/2).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskShape'></a>PESMaskShape</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: m_sin2
+<br/><br> The mask function shape.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>m_sin2</b>:  sin2 mask.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskSize'></a>PESMaskSize</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: block
+<br/><br> Set the size of the mask function.
+ Here you can set the inner (R1) and outer (R2) radius by setting
+ the block as follows:
+<br><br>
+<tt>%PESMaskSize
+ <br>&nbsp;&nbsp; R1 | R2
+ <br>%</tt>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskSpectEnergyMax'></a>PESMaskSpectEnergyMax</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: float
+<br/><i>Default</i>: maxval(mask%Lk)**2/2
+<br/><br> The maximum energy for the PES spectrum.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskSpectEnergyStep'></a>PESMaskSpectEnergyStep</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: float
+<br/><br> The PES spectrum energy step.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PESMaskStartTime'></a>PESMaskStartTime</b>
+<br/><i>Section</i>: Time-Dependent::PES
+<br/><i>Type</i>: float
+<br/><i>Default</i>: -1.0
+<br/><br> The time photoelectrons start to be recorded. In pump-probe simulations this allow to
+ get rid of unwanted ionization signal coming from the pump.
+ NOTE: this will enforce the mask boundary conditions for all the times.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Time-Dependent::PhotoElectronSpectrum'</a>
+<H2>Time-Dependent::PhotoElectronSpectrum</H2>
+
+
+<p><b><a name='PhotoElectronSpectrum'></a>PhotoElectronSpectrum</b>
+<br/><i>Section</i>: Time-Dependent::PhotoElectronSpectrum
+<br/><i>Type</i>: flag
+<br/><i>Default</i>: no
+<br/><br>
+<br/><i>Options</i>:
+<ul>
+<li><b>none</b>:  The photoelectron spectrum is not calculated. This is the default.
+</li>
+<li><b>pes_rc</b>:  Store the wavefunctions at specific points in order to
+ calculate the photoelectron spectrum at a point far in the box as proposed in
+ A. Pohl, P.-G. Reinhard, and E. Suraud, <i>Phys. Rev. Lett.</i> <b>84</b>, 5090 (2000).
+</li>
+<li><b>pes_mask</b>:  Calculate the photo-electron spectrum using the mask method.
+ U. De Giovannini, D. Varsano, M. A. L. Marques, H. Appel, E. K. U. Gross, and A. Rubio,
+ <i>Phys. Rev. A</i> <b>85</b>, 062515 (2012).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PhotoElectronSpectrumPoints'></a>PhotoElectronSpectrumPoints</b>
+<br/><i>Section</i>: Time-Dependent::PhotoElectronSpectrum
+<br/><i>Type</i>: block
+<br/><br> List of points at which to calculate the photoelectron spectrum by Suraud method.
+ The exact syntax is:
+<br><br>
+ <tt>%PhotoElectronSpectrumPoints
+ <br>&nbsp;&nbsp;x1 | y1 | z1
+ <br>%
+ </tt>
+
+</p><hr width='30%' align='left'/>
+
+<a name='Time-Dependent::Propagation'</a>
+<H2>Time-Dependent::Propagation</H2>
+
+
+<p><b><a name='CPElectronicMass'></a>CPElectronicMass</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1.0
+<br/><br> The fictitious electronic mass used to propagate the electronic
+ wavefunctions in the Car-Parrinello formalism.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='CPMethod'></a>CPMethod</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: verlet
+<br/><br> This variable defines how to integrate the Car-Parrinello
+ equations. The default is <tt>verlet</tt>.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>vel_verlet</b>:  RATTLE/Velocity Verlet integrator.
+</li>
+<li><b>verlet</b>:  Standard Verlet.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MoveIons'></a>MoveIons</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> This variable controls whether atoms are moved during
+ a time propagation run. The default is no.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='RecalculateGSDuringEvolution'></a>RecalculateGSDuringEvolution</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> In order to calculate some information about the system along the
+ evolution (e.g. projection onto the ground-state KS determinant,
+ projection of the TDKS spin-orbitals onto the ground-state KS
+ spin-orbitals), the ground-state KS orbitals are needed. If the
+ ionic potential changes -- that is, the ions move -- one may want
+ to recalculate the ground state. You may do this by setting this
+ variable.
+<br><br>
+ The recalculation is not done every time step, but only every
+ OutputEvery time steps.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDDynamics'></a>TDDynamics</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: ehrenfest
+<br/><br> Type of dynamics to follow during a time propagation. By default
+ it is Ehrenfest TDDFT.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>ehrenfest</b>:  Ehrenfest dynamics.
+</li>
+<li><b>bo</b>:  Born-Oppenheimer (Experimental).
+</li>
+<li><b>cp</b>:  Car-Parrinello molecular dynamics.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDEnergyUpdateIter'></a>TDEnergyUpdateIter</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 10
+<br/><br> This variable controls how often Octopus updates the total energy
+ during a time propagation run. The default is every 10
+ iterations. For iterations where the energy is not updated, the
+ last calculated value is reported. If you set this variable to 1,
+ the energy will be calculated in each step.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDExpOrder'></a>TDExpOrder</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 4
+<br/><br> For <tt>TDExponentialMethod</tt> = <tt>standard</tt> or <tt>chebyshev</tt>,
+ the order to which the exponential is expanded. For the Lanczos approximation,
+ it is the Lanczos-subspace dimension.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDExponentialMethod'></a>TDExponentialMethod</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: taylor
+<br/><br> Method used to numerically calculate the exponential of the Hamiltonian,
+ a core part of the full algorithm used to approximate the evolution
+ operator, specified through the variable <tt>TDPropagator</tt>.
+ In the case of using the Magnus method, described below, the action of the exponential
+ of the Magnus operator is also calculated through the algorithm specified
+ by this variable.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>lanczos</b>:  Allows for larger time-steps.
+ However, the larger the time-step, the longer the computational time per time-step.
+ In certain cases, if the time-step is too large, the code will emit a warning
+ whenever it considers that the evolution may not be properly proceeding --
+ the Lanczos process did not converge. The method consists in a Krylov
+ subspace approximation of the action of the exponential
+ (see M. Hochbruck and C. Lubich, SIAM J. Numer. Anal. <b>34</b>, 1911 (1997) for details).
+ Two more variables control the performance of the method: the maximum dimension
+ of this subspace (controlled by variable <tt>TDExpOrder</tt>), and
+ the stopping criterion (controlled by variable <tt>TDLanczosTol</tt>).
+ The smaller the stopping criterion, the more precisely the exponential
+ is calculated, but also the larger the dimension of the Arnoldi
+ subspace. If the maximum dimension allowed by <tt>TDExpOrder</tt> is not
+ enough to meet the criterion, the above-mentioned warning is emitted.
+</li>
+<li><b>taylor</b>:  This method amounts to a straightforward application of the definition of
+ the exponential of an operator, in terms of its Taylor expansion.
+<br><br>
+ <MATH>\exp_{\rm STD} (-i\delta t H) = \sum_{i=0}^{k} {(-i\delta t)^i\over{i!}} H^i.</MATH>
+<br><br>
+ The order <i>k</i> is determined by variable <i>TDExpOder</i>.
+ Some numerical considerations (by Jeff Giansiracusa and George F. Bertsch;
+ see http://www.phys.washington.edu/~bertsch/num3.ps)
+ suggest the 4th order as especially suitable and stable.
+</li>
+<li><b>chebyshev</b>:  In principle, the Chebyshev expansion
+ of the exponential represents it more accurately than the canonical or standard expansion.
+ As in the latter case, <tt>TDExpOrder</tt> determines the order of the expansion.
+<br><br>
+ There exists a closed analytic form for the coefficients of the exponential in terms
+ of Chebyshev polynomials:
+<br><br>
+ <MATH>\exp_{\rm CHEB} \left( -i\delta t H \right) = \sum_{k=0}^{\infty} (2-\delta_{k0})(-i)^{k}J_k(\delta t) T_k(H),</MATH>
+<br><br>
+ where <math>J_k</math> are the Bessel functions of the first kind, and H has to be previously
+ scaled to <math>[-1,1]</math>.
+ See H. Tal-Ezer and R. Kosloff, J. Chem. Phys. <b>81</b>,
+ 3967 (1984); R. Kosloff, Annu. Rev. Phys. Chem. <b>45</b>, 145 (1994);
+ C. W. Clenshaw, MTAC <b>9</b>, 118 (1955).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDIonicTimeScale'></a>TDIonicTimeScale</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1.0
+<br/><br> This variable defines the factor between the timescale of ionic
+ and electronic movement. It allows reasonably fast
+ Born-Oppenheimer molecular-dynamics simulations based on
+ Ehrenfest dynamics. The value of this variable is equivalent to
+ the role of <math>\mu</math> in Car-Parrinello. Increasing it
+ linearly accelerates the time step of the ion
+ dynamics, but also increases the deviation of the system from the
+ Born-Oppenheimer surface. The default is 1, which means that both
+ timescales are the same. Note that a value different than 1
+ implies that the electrons will not follow physical behaviour.
+<br><br>
+ According to our tests, values around 10 are reasonable, but it
+ will depend on your system, mainly on the width of the gap.
+<br><br>
+ Important: The electronic time step will be the value of
+ <tt>TDTimeStep</tt> divided by this variable, so if you have determined an
+ optimal electronic time step (that we can call <i>dte</i>), it is
+ recommended that you define your time step as:
+<br><br>
+ <tt>TDTimeStep</tt> = <i>dte</i> * <tt>TDIonicTimeScale</tt>
+<br><br>
+ so you will always use the optimal electronic time step.
+<br><br>
+ For more details see: <tt>http://arxiv.org/abs/0710.3321</tt>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDLanczosTol'></a>TDLanczosTol</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1e-5
+<br/><br> An internal tolerance variable for the Lanczos method. The smaller, the more
+ precisely the exponential is calculated, and also the bigger the dimension
+ of the Krylov subspace needed to perform the algorithm. One should carefully
+ make sure that this value is not too big, or else the evolution will be
+ wrong.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDMaximumIter'></a>TDMaximumIter</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 1500
+<br/><br> Number of time-propagation steps that will be performed. By default 1500.
+<br><br>
+ Tip: If you would like to specify the real time of the
+ propagation, rather than the number of steps, just use something
+ like:
+<br><br>
+ <tt>TDMaximumIter</tt> = 1000.0 / <tt>TDTimeStep</tt>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDPropagator'></a>TDPropagator</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: etrs
+<br/><br> This variable determines which algorithm will be used to approximate
+ the evolution operator <math>U(t+\delta t, t)</math>. That is, given
+ <math>\psi(\tau)</math> and <math>H(\tau)</math> for <math>tau \le t</math>,
+ calculate <math>t+\delta t</math>. Note that in general the Hamiltonian
+ is not known at times in the interior of the interval <math>[t,t+\delta t]</math>.
+ This is due to the self-consistent nature of the time-dependent Kohn-Sham problem:
+ the Hamiltonian at a given time <math>\tau</math> is built from the
+ "solution" wavefunctions at that time.
+<br><br>
+ Some methods, however, do require the knowledge of the Hamiltonian at some
+ point of the interval <math>[t,t+\delta t]</math>. This problem is solved by making
+ use of extrapolation: given a number <math>l</math> of time steps previous to time
+ <math>t</math>, this information is used to build the Hamiltonian at arbitrary times
+ within <math>[t,t+\delta t]</math>. To be fully precise, one should then proceed
+ <i>self-consistently</i>: the obtained Hamiltonian at time <math>t+\delta t</math>
+ may then be used to interpolate the Hamiltonian, and repeat the evolution
+ algorithm with this new information. Whenever iterating the procedure does
+ not change the solution wavefunctions, the cycle is stopped. In practice,
+ in <tt>Octopus</tt> we perform a second-order extrapolation without a
+ self-consistency check, except for the first two iterations, where obviously
+ the extrapolation is not reliable.
+<br><br>
+ The proliferation of methods is certainly excessive. The reason for it is that
+ the propagation algorithm is currently a topic of active development. We
+ hope that in the future the optimal schemes are clearly identified. In the
+ mean time, if you do not feel like testing, use the default choices and
+ make sure the time step is small enough.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>qoct_tddft_propagator</b>:  WARNING: EXPERIMENTAL
+</li>
+<li><b>qoct_tddft_propagator_2</b>:  WARNING: EXPERIMENTAL
+</li>
+<li><b>caetrs</b>:  (experimental) Corrected Approximated Enforced Time-Reversal
+ Symmetry (AETRS), this is the previous propagator but including
+ a correction step to the exponential.
+</li>
+<li><b>etrs</b>:  The idea is to make use of time-reversal symmetry from the beginning:
+<br><br>
+ <MATH>
+   \exp \left(-i\delta t/2 H_{n}\right)\psi_n = exp \left(i\delta t/2 H_{n+1}\right)\psi_{n+1},
+ </MATH>
+<br><br>
+ and then invert to obtain:
+<br><br>
+ <MATH>
+   \psi_{n+1} = \exp \left(-i\delta t/2 H_{n+1}\right) exp \left(-i\delta t/2 H_{n}\right)\psi_{n}.
+ </MATH>
+<br><br>
+ But we need to know <math>H_{n+1}</math>, which can only be known exactly through the solution
+ <math>\psi_{n+1}</math>. What we do is to estimate it by performing a single exponential:
+ <math>\psi^{*}_{n+1}=\exp \left( -i\delta t H_{n} \right) \psi_n</math>, and then
+ <math>H_{n+1} = H[\psi^{*}_{n+1}]</math>. Thus no extrapolation is performed in this case.
+</li>
+<li><b>aetrs</b>:  Approximated Enforced Time-Reversal Symmetry (AETRS).
+ A modification of previous method to make it faster.
+ It is based on extrapolation of the time-dependent potentials. It is faster
+ by about 40%.
+<br><br>
+ The only difference is the procedure to estimate @math{H_{n+1}}: in this case
+ it is extrapolated via a second-order polynomial by making use of the
+ Hamiltonian at time @math{t-2\delta t}, @math{t-\delta t} and @math{t}.
+</li>
+<li><b>exp_mid</b>:  Exponential Midpoint Rule (EM).
+ This is maybe the simplest method, but it is very well grounded theoretically:
+ it is unitary (if the exponential is performed correctly) and preserves
+ time-reversal symmetry (if the self-consistency problem is dealt with correctly).
+ It is defined as:
+<br><br>
+ <MATH>
+   U_{\rm EM}(t+\delta t, t) = \exp \left( -i\delta t H_{t+\delta t/2}\right)\,.
+ </MATH>
+</li>
+<li><b>crank_nicholson</b>:  Classical Crank-Nicholson propagator.
+<br><br>
+ <MATH>
+  (1 + i\delta t/2 H_{n+1/2}) \psi_{n+1} = (1 - i\delta t/2 H_{n+1/2}) \psi_{n}
+ </MATH>
+</li>
+<li><b>crank_nicholson_sparskit</b>:  Classical Crank-Nicholson propagator. Requires the SPARSKIT library.
+<br><br>
+ <MATH>
+  (1 + i\delta t/2 H_{n+1/2}) \psi_{n+1} = (1 - i\delta t/2 H_{n+1/2}) \psi_{n}
+ </MATH>
+</li>
+<li><b>magnus</b>:  Magnus Expansion (M4).
+ This is the most sophisticated approach. It is a fourth-order scheme (a feature
+ which it shares with the ST scheme; the other schemes are in principle second-order).
+ It is tailored for making use of very large time steps, or equivalently,
+ dealing with problem with very high-frequency time-dependence.
+ It is still in a experimental state; we are not yet sure of when it is
+ advantageous.
+</li>
+<li><b>crank_nicholson_src_mem</b>:  Crank-Nicholson propagator with source and memory term for transport
+ calculations.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDStepsWithSelfConsistency'></a>TDStepsWithSelfConsistency</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 3
+<br/><br> Since the KS propagator is non-linear, each propagation step
+ should be performed self-consistently.  In practice, for most
+ purposes this is not necessary, except perhaps in the first
+ iterations. This variable holds the number of propagation steps
+ for which the propagation is done self-consistently.
+<br><br>
+ The special value <tt>all_steps</tt> forces self-consistency to
+ be imposed on all propagation steps. A value of 0 means that
+ self-consistency will not be imposed.  The default is 3, which
+ means that self-consistency is only enforced during the first three
+ steps.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>all_steps</b>:  Self-consistency is imposed for all propagation steps.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDTimeStep'></a>TDTimeStep</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: float
+<br/><br> The time-step for the time propagation. For most propagators you
+ want to use the largest value that is possible without the
+ evolution becoming unstable.
+<br><br>
+ The default value is the maximum value that we have found
+ empirically that is stable for the spacing Octopus is
+ using. However, you might need to adjust this value.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TemperatureFunction'></a>TemperatureFunction</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: none
+<br/><br> If a thermostat is used, this variable indicates the name
+ function of the TDFunctions that will be used to control the
+ temperature. The values of the temperature are given in
+ degrees Kelvin. The default name for this function is
+ "temperature".
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='Thermostat'></a>Thermostat</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: none
+<br/><br> This variable selects the type of thermostat applied to
+ control the ionic temperature.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>none</b>:  No thermostat is applied. This is the default.
+</li>
+<li><b>velocity_scaling</b>:  Velocities are scaled to control the temperature.
+</li>
+<li><b>nose_hoover</b>:  Nose-Hoover thermostat.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ThermostatMass'></a>ThermostatMass</b>
+<br/><i>Section</i>: Time-Dependent::Propagation
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1.0
+<br/><br> This variable sets the fictitious mass for the Nose-Hoover
+ thermostat. The default is 1.0.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Time-Dependent::Response'</a>
+<H2>Time-Dependent::Response</H2>
+
+
+<p><b><a name='TDDeltaKickTime'></a>TDDeltaKickTime</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0
+<br/><br> The delta-perturbation that can be applied by making use of the <tt>TDDeltaStrength</tt> variable,
+ can be applied at the time given by this variable. Usually, this time is zero, since one wants
+ to apply the delta pertubation or "kick" at a system at equilibrium, and no other time-dependent
+ external potential is used. However, one may want to apply a kick on top of a laser field,
+ for example.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDDeltaStrength'></a>TDDeltaStrength</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: float
+<br/><br> When no laser is applied, a delta (in time) perturbation with
+ strength <tt>TDDeltaStrength</tt> can be applied. This is used to
+ calculate, <i>e.g.</i>, the linear optical spectra. If the ions are
+ allowed to move, the kick will affect them also.
+ The electric field is -(\hbar <i>k</i> / <i>e</i>) delta(<i>t</i>) for a dipole with
+ zero wavevector, where <i>k</i> = <tt>TDDeltaStrength</tt>, which causes
+ the wavefunctions instantaneously to acquire a phase exp(<i>ikx</i>).
+ The unit is inverse length.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDDeltaStrengthMode'></a>TDDeltaStrengthMode</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: kick_density
+<br/><br> When calculating the density response via real-time propagation,
+ one needs to perform an initial kick on the KS system, at
+ time zero. Depending on what kind of response property one wants to obtain,
+ this kick may be done in several modes.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>kick_density</b>:  The total density of the system is perturbed.
+</li>
+<li><b>kick_spin</b>:  The individual spin densities are perturbed differently. Note that this mode
+ is only possible if the run is done in spin-polarized mode, or with spinors.
+</li>
+<li><b>kick_spin_and_density</b>:  A combination of the two above. Note that this mode
+ is only possible if the run is done in spin-polarized mode, or with spinors.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDDeltaUserDefined'></a>TDDeltaUserDefined</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: string
+<br/><br> By default, the kick function will be a dipole. This will change if (1) the variable
+ TDDeltaUserDefined is present in the inp file, or (2) if the block TDKickFunction
+ is present in the inp file. If both are present in the inp file, the TDKickFunction
+ block will be ignored. The value of TDDeltaUserDefined should be a string describing
+ the function that is going to be used as delta perturbation.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDKickFunction'></a>TDKickFunction</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: block
+<br/><br> If the block <tt>TDKickFunction</tt> is present in the input file, and the variable
+ "TDDeltaUserDefined" is not present in the input file, the kick function to
+ be applied at time zero of the time-propagation will not be a "dipole" function
+ (<i>i.e.</i> phi => exp(i*k*z) phi), but a general multipole in the form r^l * Y_{lm}(r).
+<br><br>
+ Each line has two columns of integers: the (<i>l</i>,<i>m</i>) pair that defines the
+ multipole. Any number of lines may be given, and the kick will be the sum of those
+ multipoles.
+<br><br>
+ This feature allows calculation of quadrupole, octupole, etc., response functions.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDMomentumTransfer'></a>TDMomentumTransfer</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: block
+<br/><br> Momentum-transfer vector for the calculation of the dynamic structure factor.
+ When this variable is set, a non-dipole field is applied, and an output file
+ <tt>ftchd</tt> is created (it contains the Fourier transform of the charge density
+ at each time). The type of the applied external field can be set by
+ an optional last number. Possible options are <tt>qexp</tt> (default), <tt>qcos</tt>,
+ <tt>qsin</tt>, or <tt>qcos+qsin</tt>.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>qexp</b>:  External field is exp(<i>iq.r</i>).
+</li>
+<li><b>qcos</b>:  External field is cos(<i>q.r</i>).
+</li>
+<li><b>qsin</b>:  External field is sin(<i>q.r</i>).
+</li>
+<li><b>qbessel</b>:  External field is j_l(qr)*Y_lm(r), where q is the length of the momentum-transfer vector.
+ In this case the block has to include two extra values (l and m).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDPolarization'></a>TDPolarization</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: block
+<br/><br> The (real) polarization of the delta electric field. Normally
+ one needs three perpendicular polarization directions to calculate a
+ spectrum (unless symmetry is used).
+ The format of the block is:
+<br><br>
+ <tt>%TDPolarization
+ <br>&nbsp;&nbsp;pol1x | pol1y | pol1z
+ <br>&nbsp;&nbsp;pol2x | pol2y | pol2z
+ <br>&nbsp;&nbsp;pol3x | pol3y | pol3z
+ <br>%</tt>
+<br><br>
+ <tt>Octopus</tt> uses both this block and the variable
+ <tt>TDPolarizationDirection</tt> to determine the polarization
+ vector for the run. For example, if
+ <tt>TDPolarizationDirection=2</tt> the polarization <tt>(pol2x,
+ pol2y, pol2z)</tt> would be used.
+<br><br>
+ The default value for <tt>TDPolarization</tt> is the three
+ Cartesian unit vectors (1,0,0), (0,1,0), and (0,0,1).
+<br><br>
+ Note that the directions do not necessarily need to be perpendicular
+ when symmetries are used.
+<br><br>
+ WARNING: If you want to obtain the cross-section tensor, the
+ <tt>TDPolarization</tt> block must be exactly the same for the run in
+ each direction. The direction must be selected by the
+ <tt>TDPolarizationDirection</tt> variable.
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDPolarizationDirection'></a>TDPolarizationDirection</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 1
+<br/><br> When a delta potential is included in a time-dependent run, this
+ variable defines in which direction the field will be applied
+ by selecting one of the lines of <tt>TDPolarization</tt>. In a
+ typical run (without using symmetry), the <tt>TDPolarization</tt> block
+ would contain the three Cartesian unit vectors (the default
+ value), and one would make 3 runs varying
+ <tt>TDPolarization</tt> from 1 to 3.
+ If one is using symmetry,  <tt>TDPolarization</tt> should run only from 1
+ to <tt>TDPolarizationEquivAxes</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDPolarizationEquivAxes'></a>TDPolarizationEquivAxes</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: integer
+<br/><br> Defines how many of the <tt>TDPolarization</tt> axes are equivalent. This information is stored in a file and then
+ used by <tt>oct-propagation_spectrum</tt> to rebuild the full polarizability tensor from just the
+ first <tt>TDPolarizationEquivAxes</tt> directions. This variable is also used by <tt>CalculationMode = vdw</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDPolarizationWprime'></a>TDPolarizationWprime</b>
+<br/><i>Section</i>: Time-Dependent::Response
+<br/><i>Type</i>: block
+<br/><br> This block is needed only when
+ <tt>TDPolarizationEquivAxes</tt> is set to 3.  In such a case,
+ the three directions (<i>pol1</i>, <i>pol2</i>, and <i>pol3</i>) defined in
+ the <tt>TDPolarization</tt> block should be related by symmetry
+ operations. If <i>A</i> is the symmetry operation that takes you
+ from <i>pol1</i> to <i>pol2</i>, then <tt>TDPolarizationWprime</tt>
+ should be set to the direction defined by <i>A</i>^{-1} <i>pol3</i>.
+ For more information see MJT Oliveira
+ <i>et al.</i>, <i>J. Nanoscience and Nanotechnology</i> <b>8</b>,
+ 3392 (2008).
+
+</p><hr width='30%' align='left'/>
+
+<a name='Time-Dependent::TD Output'</a>
+<H2>Time-Dependent::TD Output</H2>
+
+
+<p><b><a name='TDDipoleLmax'></a>TDDipoleLmax</b>
+<br/><i>Section</i>: Time-Dependent::TD Output
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 1
+<br/><br> Maximum multipole of the density output to the file <tt>td.general/multipoles</tt>
+ during a time-dependent simulation. Must be 0 &lt; <tt>TDDipoleLmax &lt; 5</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDExcitedStatesToProject'></a>TDExcitedStatesToProject</b>
+<br/><i>Section</i>: Time-Dependent::TD Output
+<br/><i>Type</i>: block
+<br/><br> <b>[WARNING: This is a *very* experimental feature]</b> The population of the excited states
+ (as defined by <Phi_I|Phi(t)> where |Phi(t)> is the many-body time-dependent state at
+ time <i>t</i>, and |Phi_I> is the excited state of interest) can be approximated -- it is not clear
+ how well -- by substituting for those real many-body states the time-dependent Kohn-Sham
+ determinant and some modification of the Kohn-Sham ground-state determinant (<i>e.g.</i>,
+ a simple HOMO-LUMO substitution, or the Casida ansatz for excited states in linear-response
+ theory. If you set <tt>TDOutput</tt> to contain <tt>populations</tt>, you may ask for these approximated
+ populations for a number of excited states, which will be described in the files specified
+ in this block: each line should be the name of a file that contains one excited state.
+<br><br>
+ FIXME: description of the format of the files.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDOutput'></a>TDOutput</b>
+<br/><i>Section</i>: Time-Dependent::TD Output
+<br/><i>Type</i>: flag
+<br/><i>Default</i>: multipoles + geometry + temperature + energy
+<br/><br> Defines what should be output during the time-dependent
+ simulation. Many of the options can increase the computational
+ cost of the simulation, so only use the ones that you need. In
+ most cases the default value is enough, as it is adapted to the
+ details of the TD run. The energy and multipoles are always
+ calculated. If the ions are allowed to be moved, additionally
+ the geometry and the temperature are output. If a laser is
+ included it will output by default.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>gauge_field</b>:  If set, outputs the vector gauge field corresponding to a spatially uniform (but time-dependent)
+ external electrical potential. This is only useful in a time-dependent periodic run.
+</li>
+<li><b>energy</b>:  If <tt>set</tt>, <tt>octopus</tt> outputs the different components of the energy
+ to the file <tt>td.general/el_energy</tt>.
+</li>
+<li><b>eigenvalues</b>:  Write the KS eigenvalues.
+</li>
+<li><b>geometry</b>:  If set (and if the atoms are allowed to move), outputs the coordinates, velocities,
+ and forces of the atoms to the the file <tt>td.general/coordinates</tt>.
+</li>
+<li><b>multipoles</b>:  Outputs the multipole moments of the density to the file <tt>td.general/multipoles</tt>.
+ This is required to, <i>e.g.</i>, calculate optical absorption spectra of finite systems. The
+ maximum value of <math>l</math> can be set with the variable <tt>TDDipoleLmax</tt>.
+</li>
+<li><b>temperature</b>:  If set, the ionic temperature at each step is printed.
+</li>
+<li><b>td_occup</b>:  (Experimental) If set, outputs the projections of the
+ time-dependent Kohn-Sham wavefunctions onto the static
+ (zero-time) wavefunctions to the file
+ <tt>td.general/projections.XXX</tt>. Only use this option if
+ you really need it, as it might be computationally expensive.
+</li>
+<li><b>angular</b>:  Outputs the angular momentum of the system, which can be used to calculate circular
+ dichroism.
+</li>
+<li><b>dipole_acceleration</b>:  When set, outputs the acceleration of the electronic dipole, calculated from the Ehrenfest theorem,
+ in the file <tt>td.general/acceleration</tt>. This file can then be
+ processed by the utility <tt>oct-harmonic-spectrum</tt> in order to obtain the harmonic spectrum.
+</li>
+<li><b>ftchd</b>:  Write Fourier transform of the electron density to the file <tt>ftchds.X</tt>,
+ where X depends on the kick (e.g. with sin-shaped perturbation X=qsin).
+ This is needed for calculating the dynamic structure factor.
+ In the case that the kick mode is qbessel, the written quantity is integral over
+ density, multiplied by spherical Bessel function times real spherical harmonic.
+</li>
+<li><b>spin</b>:  (Experimental) Outputs the expectation value of the spin, which can be used to calculate magnetic
+ circular dichroism.
+</li>
+<li><b>local_mag_moments</b>:  If set, outputs the local magnetic moments, integrated in sphere centered around each atom.
+ The radius of the sphere can be set with <tt>LocalMagneticMomentsSphereRadius</tt>.
+</li>
+<li><b>laser</b>:  If set, and if there are lasers defined in <tt>TDLasers</tt>,
+ <tt>octopus</tt> outputs the laser field to the file <tt>td.general/laser</tt>.
+</li>
+<li><b>dipole_velocity</b>:  When set, outputs the dipole velocity, calculated from the Ehrenfest theorem,
+ in the file <tt>td.general/velocity</tt>. This file can then be
+ processed by the utility <tt>oct-harmonic-spectrum</tt> in order to obtain the harmonic spectrum.
+</li>
+<li><b>populations</b>:  (Experimental) Outputs the projection of the time-dependent
+ Kohn-Sham Slater determinant onto the ground state (or
+ approximations to the excited states) to the file
+ <tt>td.general/populations</tt>. Note that the calculation of
+ populations is expensive in memory and computer time, so it
+ should only be used if it is really needed.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDProjStateStart'></a>TDProjStateStart</b>
+<br/><i>Section</i>: Time-Dependent::TD Output
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 1
+<br/><br> Only output projections to states above <tt>TDProjStateStart</tt>. Usually one is only interested
+ in particle-hole projections around the HOMO, so there is no need to calculate (and store)
+ the projections of all TD states onto all static states. This sets a lower limit. The upper limit
+ is set by the number of states in the propagation and the number of unoccupied states
+ available.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Time-Dependent::TDPSF'</a>
+<H2>Time-Dependent::TDPSF</H2>
+
+
+<p><b><a name='TDPSFDelta'></a>TDPSFDelta</b>
+<br/><i>Section</i>: Time-Dependent::TDPSF
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0001
+<br/><br> Filter error threshold.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDPSFKmin'></a>TDPSFKmin</b>
+<br/><i>Section</i>: Time-Dependent::TDPSF
+<br/><i>Type</i>: float
+<br/><i>Default</i>: pi/width
+<br/><br> k-space filter width.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TDPSFSigma'></a>TDPSFSigma</b>
+<br/><i>Section</i>: Time-Dependent::TDPSF
+<br/><i>Type</i>: float
+<br/><i>Default</i>: sqrt(2)
+<br/><br> Standard deviation of the phase space filter.
+
+</p><hr width='30%' align='left'/>
+
+</body>
+</html>

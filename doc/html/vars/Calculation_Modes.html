@@ -1,0 +1,1077 @@
+
+<html>
+<head>
+
+<style>
+   BODY {background-color: white; 
+         font-size: 10pt; font-family: verdana,helvetica;}
+   A  {text-decoration: none;color: blue}
+</style>
+</head>
+<body>
+
+<a name='Calculation Modes'</a>
+<H2>Calculation Modes</H2>
+
+
+<p><b><a name='CalculationMode'></a>CalculationMode</b>
+<br/><i>Section</i>: Calculation Modes
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: gs
+<br/><br> Decides what kind of calculation is to be performed.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>gs</b>:  Calculation of the ground state.
+</li>
+<li><b>unocc</b>:  Calculation of unoccupied/virtual KS states.
+</li>
+<li><b>td</b>:  Time-dependent calculation (experimental for periodic systems).
+</li>
+<li><b>go</b>:  Optimization of the geometry.
+</li>
+<li><b>opt_control</b>:  Optimal control.
+</li>
+<li><b>em_resp</b>:  Calculation of the electromagnetic response: electric
+ polarizabilities and hyperpolarizabilities and magnetic
+ susceptibilities (experimental for periodic systems).
+</li>
+<li><b>casida</b>:  Excitations via Casida linear-response TDDFT; for finite systems only.
+</li>
+<li><b>td_transport</b>:  Time-dependent quantum transport (experimental).
+</li>
+<li><b>vdw</b>:  Calculate van der Waals coefficients.
+</li>
+<li><b>vib_modes</b>:  Calculation of the vibrational modes.
+</li>
+<li><b>one_shot</b>:  Use the self-consistent wavefunctions in the <tt>restart</tt> directory to
+ evaluate the total energy using a different XC functional.
+ This is effectively a first-order perturbative calculation of the total energy,
+ the perturbation being the difference between the two XC potentials used.
+</li>
+<li><b>kdotp</b>:  Calculation of effective masses by <i>k.p</i> perturbation theory (experimental).
+</li>
+<li><b>gcm</b>:  Generator-Coordinates Method calculation (experimental).
+ Ref. K. Capelle, <i>J. Chem. Phys.</i> <b>119</b>, 1285 (2003).
+</li>
+<li><b>dummy</b>:  This calculation mode does nothing. Useful for debugging, testing and benchmarking.
+</li>
+<li><b>invert_ks</b>:  Invert the Kohn-Sham equations (experimental).
+</li>
+<li><b>recipe</b>:  Prints out a tasty recipe.
+<br><br>
+ May also be used as a block for multi-dataset mode. The first line is a list of calculation modes,
+ the second is labels (optional), and the third is the order for the runs (optional). Example:
+<br><br>
+ <pre>%CalculationMode
+   gs     | unocc  | td
+   "run1" | "run2" | "run3"
+   1      | 2      | 3
+ %</pre>
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+<a name='Calculation Modes::Generator Coordinates'</a>
+<H2>Calculation Modes::Generator Coordinates</H2>
+
+
+<p><b><a name='GCMSlaterDeterminants'></a>GCMSlaterDeterminants</b>
+<br/><i>Section</i>: Calculation Modes::Generator Coordinates
+<br/><i>Type</i>: block
+<br/><br> Specify which Slater determinants are to be used, each generated from a previous
+ ground-state calculation. Supply a list of names of the directories in which the
+ results of each calculation was saved.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Calculation Modes::Geometry Optimization'</a>
+<H2>Calculation Modes::Geometry Optimization</H2>
+
+
+<p><b><a name='GOCenter'></a>GOCenter</b>
+<br/><i>Section</i>: Calculation Modes::Geometry Optimization
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> (Experimental) If set to yes, Octopus centers the geometry at
+ every optimization step. It also reduces the degrees of
+ freedom of the optimization by using the translational
+ invariance. The default is no.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='GOMaxIter'></a>GOMaxIter</b>
+<br/><i>Section</i>: Calculation Modes::Geometry Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 200
+<br/><br> Even if the convergence criterion is not satisfied, the minimization will stop
+ after this number of iterations.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='GOMethod'></a>GOMethod</b>
+<br/><i>Section</i>: Calculation Modes::Geometry Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: steep
+<br/><br> Method by which the minimization is performed.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>steep</b>:  Simple steepest descent.
+</li>
+<li><b>cg_fr</b>:  Fletcher-Reeves conjugate-gradient algorithm. The
+ conjugate-gradient algorithm proceeds as a succession of line
+ minimizations. The sequence of search directions is used to build
+ up an approximation to the curvature of the function in the
+ neighborhood of the minimum.
+</li>
+<li><b>cg_pr</b>:  Polak-Ribiere conjugate-gradient algorithm.
+</li>
+<li><b>cg_bfgs</b>:  Vector Broyden-Fletcher-Goldfarb-Shanno (BFGS) conjugate-gradient algorithm.
+ It is a quasi-Newton method which builds up an approximation to the second
+ derivatives of the function <i>f</i> using the difference between successive gradient
+ vectors.  By combining the first and second derivatives, the algorithm is able
+ to take Newton-type steps towards the function minimum, assuming quadratic
+ behavior in that region.
+</li>
+<li><b>cg_bfgs2</b>:  The bfgs2 version of this minimizer is the most efficient version available,
+ and is a faithful implementation of the line minimization scheme described in
+ Fletcher, <i>Practical Methods of Optimization</i>, Algorithms 2.6.2 and 2.6.4.
+</li>
+<li><b>simplex</b>:  This is experimental, and in fact, <b>not</b> recommended unless you just want to
+ fool around. It is the Nead-Melder simplex algorithm, as implemented in the
+ GNU Scientific Library (GSL). It does not make use of the gradients (<i>i.e.</i>, the
+ forces) which makes it less efficient than other schemes. It is included here
+ for completeness, since it is free.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='GOMinimumMove'></a>GOMinimumMove</b>
+<br/><i>Section</i>: Calculation Modes::Geometry Optimization
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0 a.u.
+<br/><br> Convergence criterion, for stopping the minimization. In
+ units of length; minimization is stopped when the coordinates
+ of all species change less than <tt>GOMinimumMove</tt>.  Used
+ in conjunction with <tt>GOTolerance</tt>. If
+ <tt>GOMinimumMove = 0</tt>, this criterion is ignored. The
+ default is 0.001 [b].
+<br><br>
+ Note that if you use <tt>GOMethod =
+ simplex</tt>, then you must supply a non-zero
+ <tt>GOMinimumMove</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='GOObjective'></a>GOObjective</b>
+<br/><i>Section</i>: Calculation Modes::Geometry Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: minimize_energy
+<br/><br> This rather esoteric option allows one to choose which objective function
+ to minimize during a geometry minimization. The use of this variable may
+ lead to inconsistencies, so please make sure you know what you are doing!
+
+<br/><i>Options</i>:
+<ul>
+<li><b>minimize_energy</b>:  Use the total energy as objective function.
+</li>
+<li><b>minimize_forces</b>:  Use <math>\sqrt{\sum |f_i|^2}</math> as objective function.
+ Note that in this case one still uses the forces as the gradient of the objective function.
+ This is, of course, inconsistent, and may lead to very strange behavior.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='GOStep'></a>GOStep</b>
+<br/><i>Section</i>: Calculation Modes::Geometry Optimization
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.5
+<br/><br> Initial step for the geometry optimizer.
+ WARNING: in some weird units.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='GOTolerance'></a>GOTolerance</b>
+<br/><i>Section</i>: Calculation Modes::Geometry Optimization
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.001 a.u.
+<br/><br> Convergence criterion, for stopping the minimization. In
+ units of force; minimization is stopped when all forces on
+ ions are smaller than this criterion.  Used in conjunction
+ with <tt>GOMinimumMove</tt>. If <tt>GOTolerance = 0</tt>,
+ this criterion is ignored. The default is 0.001 H/b (0.05
+ eV/Angstrom).
+
+</p><hr width='30%' align='left'/>
+
+<a name='Calculation Modes::Invert KS'</a>
+<H2>Calculation Modes::Invert KS</H2>
+
+
+<p><b><a name='InvertKSConvAbsDens'></a>InvertKSConvAbsDens</b>
+<br/><i>Section</i>: Calculation Modes::Invert KS
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1e-5
+<br/><br> Absolute difference between the calculated and the target density in the KS
+ inversion. Has to be larger than the convergence of the density in the SCF run.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='InvertKSStabilizer'></a>InvertKSStabilizer</b>
+<br/><i>Section</i>: Calculation Modes::Invert KS
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.5
+<br/><br> Additive constant <i>c</i> in the iterative calculation of the KS potential
+   (v(alpha+1)=rho(alpha)+c)/(rho_target+c)*v(alpha)
+ ensures that very small densities do not cause numerical problems.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='InvertKSTargetDensity'></a>InvertKSTargetDensity</b>
+<br/><i>Section</i>: Calculation Modes::Invert KS
+<br/><i>Type</i>: string
+<br/><i>Default</i>: <tt>target_density.dat</tt>
+<br/><br> Name of the file that contains the density used as the target in the
+ inversion of the KS equations.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='InvertKSVerbosity'></a>InvertKSVerbosity</b>
+<br/><i>Section</i>: Calculation Modes::Invert KS
+<br/><i>Type</i>: integer
+<br/><br> Selects what is output during the calculation of the KS potential.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>0</b>:  Only outputs the converged density and KS potential.
+</li>
+<li><b>1</b>:  Same as 0 but outputs the maximum difference to the target density in each
+ iteration in addition.
+</li>
+<li><b>2</b>:  Same as 1 but outputs the density and the KS potential in each iteration in
+ addition.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='InvertKSmethod'></a>InvertKSmethod</b>
+<br/><i>Section</i>: Calculation Modes::Invert KS
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: iterative
+<br/><br> Selects whether the exact two-particle method or the iterative scheme
+ is used to invert the density to get the KS potential.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>iterative</b>:  Iterative scheme for v_s.
+</li>
+<li><b>two_particle</b>:  Exact two-particle scheme.
+</li>
+<li><b>iterativevxc</b>:  Iterative scheme for v_xc.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+<a name='Calculation Modes::Optimal Control'</a>
+<H2>Calculation Modes::Optimal Control</H2>
+
+
+<p><b><a name='OCTCheckGradient'></a>OCTCheckGradient</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0
+<br/><br> When doing QOCT with the conjugate-gradient optimization scheme, the gradient is
+ computed thanks to a forward-backwards propagation. For debugging purposes, this
+ gradient can be compared with the value obtained "numerically" (<i>i.e.</i> by doing
+ successive forward propagations with control fields separated by small finite
+ differences).
+<br><br>
+ In order to activate this feature, set <tt>OCTCheckGradient</tt> to some non-zero value,
+ which will be the finite difference used to numerically compute the gradient.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTControlFunctionOmegaMax'></a>OCTControlFunctionOmegaMax</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: float
+<br/><i>Default</i>: -1.0
+<br/><br> The Fourier series that can be used to represent the control functions must be truncated;
+ the truncation is given by a cut-off frequency which is determined by this variable.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTControlFunctionRepresentation'></a>OCTControlFunctionRepresentation</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: control_fourier_series_h
+<br/><br> If <tt>OCTControlRepresentation = control_function_parametrized</tt>, one must
+ specify the kind of parameters that determine the control function.
+ If <tt>OCTControlRepresentation = control_function_real_time</tt>, then this variable
+ is ignored, and the control function is handled directly in real time.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>control_fourier_series_h</b>:  The control function is expanded as a full Fourier series (although it must, of
+ course, be a real function). Then, the total fluence is fixed, and a transformation
+ to hyperspherical coordinates is done; the parameters to optimize are the hyperspherical
+ angles.
+</li>
+<li><b>control_zero_fourier_series_h</b>:  The control function is expanded as a Fourier series, but assuming (1) that the zero
+ frequency component is zero, and (2) the control function, integrated in time, adds
+ up to zero (this essentially means that the sum of all the cosine coefficients is zero).
+ Then, the total fluence is fixed, and a transformation to hyperspherical coordinates is
+ done; the parameters to optimize are the hyperspherical angles.
+</li>
+<li><b>control_fourier_series</b>:  The control function is expanded as a full Fourier series (although it must, of
+ course, be a real function). The control parameters are the coefficients of this
+ basis-set expansion.
+</li>
+<li><b>control_zero_fourier_series</b>:  The control function is expanded as a full Fourier series (although it must, of
+ course, be a real function). The control parameters are the coefficients of this
+ basis-set expansion. The difference with the option <tt>control_fourier_series</tt> is that
+ (1) that the zero-frequency component is zero, and (2) the control function, integrated
+ in time, adds up to zero (this essentially means that the sum of all the cosine
+ coefficients is zero).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTControlFunctionType'></a>OCTControlFunctionType</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: controlfunction_mode_epsilon
+<br/><br> The control function may fully determine the time-dependent form of the
+ external field, or only the envelope function of this external field, or its phase.
+ Or, we may have two different control functions, one of them providing the phase
+ and the other one, the envelope.
+<br><br>
+ Note that, if <tt>OCTControlRepresentation = control_function_real_time</tt>, then the control
+ function must <b>always</b> determine the full external field.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>controlfunction_mode_epsilon</b>:  In this case, the control function determines the full control function: namely,
+ if we are considering the electric field of a laser, the time-dependent electric field.
+</li>
+<li><b>controlfunction_mode_f</b>:  The optimization process attempts to find the best possible envelope. The full
+ control field is this envelope times a cosine function with a "carrier" frequency.
+ This carrier frequency is given by the carrier frequency of the <tt>TDExternalFields</tt>
+ in the <tt>inp</tt> file.
+</li>
+<li><b>controlfunction_mode_phi</b>:  The optimization process attempts to find the best possible time-dependent phase. That is,
+ the external field would be given by a function in the form e(t) = f(t)*cos(w0*t+phi(t)),
+ where f(t) is an "envelope", w0 a carrier frequency, and phi(t) the td phase that we
+ wish to optimize.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTControlRepresentation'></a>OCTControlRepresentation</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: control_function_real_time
+<br/><br> Optimal Control Theory can be performed with <tt>Octopus</tt> in two different modes:
+ either considering the control function to be described in full in real time,
+ or to be represented by a set of parameters (which may, or may not be,
+ the coefficients of its expansion in a given basis). The particular choice
+ for these parameters is specified by variable <tt>OCTParameterRepresentation</tt>
+ (this variable will be ignored if the control function is to be represented
+ directly in real time).
+
+<br/><i>Options</i>:
+<ul>
+<li><b>control_function_real_time</b>:  The control functions are represented directly in real time.
+</li>
+<li><b>control_function_parametrized</b>:  The control functions are specified by a set of parameters.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTCurrentFunctional'></a>OCTCurrentFunctional</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: oct_no_curr
+<br/><br> The variable <tt>OCTCurrentFunctional</tt> describes which kind of current target functional J1_c[j] is
+ to be used. EXPERIMENTAL!
+
+<br/><i>Options</i>:
+<ul>
+<li><b>oct_no_curr</b>:  No current functional is used, no current calculated.
+</li>
+<li><b>oct_curr_square</b>:  Calculates the square of current j: J1_c[j] = <tt>OCTCurrentWeight</tt>*\int|j(r)|^2 dr.
+ For <tt>OCTCurrentWeight</tt> .LT. 0 the current will be minimized (useful in combination with
+ target density in order to obtain stable final target density), while for
+ OCTCurrentWeight</tt> .GT. 0 it will be maximized (useful in combination with a target density
+ in order to obtain a high-velocity impact, for instance). It is a static target, to be reached at
+ total time.
+</li>
+<li><b>oct_max_curr_ring</b>:  Maximizes the current of a quantum ring in one direction. The functional maximizes the z projection of the
+ outer product between the position \vec{r} and the current \vec{j}:
+ J1[j] = <tt>OCTCurrentWeight</tt>*\int (\vec{r} \times \vec{j}) \hat{z} dr. For <tt>OCTCurrentWeight</tt> .GT. 0. the
+ current flows in counter clockwise direction, while for <tt>OCTCurrentWeight</tt> .LT. 0 the current is clockwise.
+</li>
+<li><b>oct_curr_square_td</b>:  The time dependent version of <tt>oct_curr_square</tt>. In fact, calculates the
+ square of current in time interval [<tt>OCTStartTimeCurrTg</tt>,
+ total time = <tt>TDMaximumIter</tt> * <tt>TDTimeStep</tt>].
+ Set <tt>TDPropagator </tt> = <tt>crank_nicholson</tt>
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTCurrentWeight'></a>OCTCurrentWeight</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0
+<br/><br> In the case of simultaneous optimization of density n and current j, one can tune the importance
+ of the current functional J1_c[j], as the respective functionals might not provide results on the
+ same scale of magnitude. J1[n,j]= J1_d[n]+ <tt>OCTCurrentWeight</tt> * J1_c[j]. Be aware that its
+ sign is crucial for the chosen <tt>OCTCurrentFunctional</tt> as explained there.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTDirectStep'></a>OCTDirectStep</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.25
+<br/><br> If you choose <tt>OCTScheme = oct_algorithm_direct</tt> or <tt>OCTScheme = oct_algorithm_newuoa</tt>,
+ the algorithms necessitate an initial "step" to perform the direct search for the
+ optimal value. The precise meaning of this "step" differs.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTDoubleCheck'></a>OCTDoubleCheck</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: true
+<br/><br> In order to make sure that the optimized field indeed does its job, the code
+ may run a normal propagation after the optimization using the optimized field.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTDumpIntermediate'></a>OCTDumpIntermediate</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: true
+<br/><br> Writes to disk the laser pulse data during the OCT algorithm at intermediate steps.
+ These are files called <tt>opt_control/laser.xxxx</tt>, where <tt>xxxx</tt> is the iteration number.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTEps'></a>OCTEps</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1.0e-6
+<br/><br> Define the convergence threshold. It computes the difference between the "input"
+ field in the iterative procedure, and the "output" field. If this difference is
+ less than <tt>OCTEps</tt> the iteration is stopped. This difference is defined as:
+<br><br>
+ <math>
+ D[\epsilon^{i},\epsilon^{o}] = \int_0^T dt \vert \epsilon^{i}(t)-\epsilon^{o}(t)\vert^2\,.
+ </math>
+<br><br>
+ (If there are several control fields, this difference is defined as the sum over
+ all the individual differences.)
+<br><br>
+ Whenever this condition is satisfied, it means that we have reached a solution point
+ of the QOCT equations, <i>i.e.</i> a critical point of the QOCT functional (not
+ necessarily a maximum, and not necessarily the global maximum).
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTExcludedStates'></a>OCTExcludedStates</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: string
+<br/><br> If the target is the exclusion of several targets, ("OCTTargetOperator = oct_exclude_states")
+ then you must declare which states are to be excluded, by setting the OCTExcludedStates variable.
+ It must be a string in "list" format: "1-8", or "2,3,4-9", for example. Be careful to include
+ in this list only states that have been calculated in a previous "gs" or "unocc" calculation,
+ or otherwise the error will be silently ignored.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTFilter'></a>OCTFilter</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><br> The block <tt>OCTFilter</tt> describes the type and shape of the filter function
+ that are applied to the optimized laser field in each iteration.
+ The filter forces the laser field to obtain the given form in frequency space.
+ Each line of the block describes a filter; this way you can actually have more
+ than one filter function (<i>e.g.</i> a filter in time and two in frequency space).
+ The filters are applied in the given order, <i>i.e.</i>, first the filter specified
+ by the first line is applied, then second line.
+ The syntax of each line is, then:
+<br><br>
+ <tt>%OCTFilter
+ <br>&nbsp;&nbsp;domain | function
+ <br>%</tt>
+<br><br>
+<br><br>
+ Possible arguments for domain are:
+<br><br>
+ (i) <tt>frequency_filter</tt>: Specifies a spectral filter.
+<br><br>
+ (ii) <tt>time_filter</tt>: DISABLED IN THIS VERSION.
+<br><br>
+ Example:
+<br><br>
+ <tt>%OCTFilter
+ <br>&nbsp;&nbsp;time | "exp(-80*( w + 0.1567 )^2  ) + exp(-80*( w - 0.1567 )^2  )"
+ <br>%</tt>
+<br><br>
+ Be careful that also the negative-frequency component is filtered since the resulting
+ field has to be real-valued.
+<br><br>
+
+<br/><i>Options</i>:
+<ul>
+<li><b>frequency_filter</b>:  The filter is applied in the frequency domain.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTFixFluenceTo'></a>OCTFixFluenceTo</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.0
+<br/><br> The algorithm tries to obtain the specified fluence for the laser field.
+ This works only in conjunction with either the WG05 or the straight iteration scheme.
+<br><br>
+ If this variable is not present in the input file, by default the code will not
+ attempt a fixed-fluence QOCT run. The same holds if the value given to this
+ variable is exactly zero.
+<br><br>
+ If this variable is given a negative value, then the target fluence will be that of
+ the initial laser pulse given as guess in the input file. Note, however, that
+ first the code applies the envelope provided by the <tt>OCTLaserEnvelope</tt> input
+ option, and afterwards it calculates the fluence.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTFixInitialFluence'></a>OCTFixInitialFluence</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: yes
+<br/><br> By default, when asking for a fixed-fluence optimization (<tt>OCTFixFluenceTo = whatever</tt>),
+ the initial laser guess provided in the input file is scaled to match this
+ fluence. However, you can force the program to use that initial laser as the initial
+ guess, no matter the fluence, by setting <tt>OCTFixInitialFluence = no</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTInitialState'></a>OCTInitialState</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 1
+<br/><br> Describes the initial state of the quantum system.
+ Possible arguments are:
+
+<br/><i>Options</i>:
+<ul>
+<li><b>oct_is_groundstate</b>:  Start in the ground state.
+</li>
+<li><b>oct_is_excited</b>:  Currently not in use.
+</li>
+<li><b>oct_is_gstransformation</b>:  Start in a transformation of the ground-state orbitals, as defined in the
+ block <tt>OCTInitialTransformStates</tt>.
+</li>
+<li><b>oct_is_userdefined</b>:  Start in a userdefined state.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTInitialTransformStates'></a>OCTInitialTransformStates</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><br> If <tt>OCTInitialState = oct_is_gstransformation</tt>, you must specify an
+ <tt>OCTInitialTransformStates</tt> block, in order to specify which linear
+ combination of the states present in <tt>restart/gs</tt> is used to
+ create the initial state.
+<br><br>
+ The syntax is the same as the <tt>TransformStates</tt> block.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTInitialUserdefined'></a>OCTInitialUserdefined</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><br> Define an initial state. Syntax follows the one of the <tt>UserDefinedStates</tt> block.
+ Example:
+<br><br>
+ <tt>%OCTInitialUserdefined
+ <br>&nbsp;&nbsp; 1 | 1 | 1 |  "exp(-r^2)*exp(-i*0.2*x)"
+ <br>%</tt>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTLaserEnvelope'></a>OCTLaserEnvelope</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><br> Often a pre-defined time-dependent envelope on the control function is desired.
+ This can be achieved by making the penalty factor time-dependent.
+ Here, you may specify the required time-dependent envelope.
+<br><br>
+ It is possible to choose different envelopes for different control functions.
+ There should be one line for each control function. Each line should
+ have only one element: a string with the function that defines the
+ <b>inverse</b> of the time-dependent penalty, which is then defined as
+ 1 divided by (this function + 1.0e-7) (to avoid possible singularities).
+<br><br>
+ The usual choices should be functions between zero and one.
+<br><br>
+ If, instead of defining a function, the string is <tt>default</tt>, then
+ the program will use the function:
+<br><br>
+ <math> \frac{1}{\alpha(t)} = \frac{1}{2}( erf((100/T)*(t-T/20))+ erf(-(100/T)*(t-T+T/20)) </math>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTLocalTarget'></a>OCTLocalTarget</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: string
+<br/><br> If <tt>OCTTargetOperator = oct_tg_local</tt>, then one must supply a function
+ that defines the target. This should be done by defining it through a string, using
+ the variable <tt>OCTLocalTarget</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTMaxIter'></a>OCTMaxIter</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 10
+<br/><br> The maximum number of iterations.
+ Typical values range from 10-100.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTMixing'></a>OCTMixing</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> Use mixing algorithms to create the input fields in the iterative OCT schemes.
+ Note that this idea is still a little bit experimental, and depending on the
+ kind of mixing that you use, and the parameters that you set, it may or may
+ not accelerate the convergence, or even spoil the convergence.
+<br><br>
+ Using <tt>TypeOfMixing = broyden</tt>, <tt>Mixing = 0.1</tt> and <tt>MixNumberSteps = 3</tt> seems
+ to work in many cases, but your mileage may vary.
+<br><br>
+ Note that mixing does not make sense (and is therefore not done, this variable
+ being ignored), for some OCT algorithms (in particular, if <tt>OCTScheme</tt> is
+ <tt>oct_algorithm_direct</tt> or <tt>oct_algorithm_newuoa</tt>).
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTMoveIons'></a>OCTMoveIons</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: logical
+<br/><br> If <tt>OCTTargetOperator = oct_tg_velocity</tt>, then one must specify
+ if the ions are assumed to be fixed or if they can move by setting
+ <tt>OCTMoveIons</tt> to <tt>true</tt> or <tt>false</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTNumberCheckPoints'></a>OCTNumberCheckPoints</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><br> During an OCT propagation, the code may write the wavefunctions at some time steps (the
+ "check points"). When the inverse backward or forward propagation
+ is performed in a following step, the wavefunction should reverse its path
+ (almost) exactly. This can be checked to make sure that it is the case -- otherwise
+ one should try reducing the time-step, or altering in some other way the
+ variables that control the propagation.
+<br><br>
+ If the backward (or forward) propagation is not retracing the steps of the previous
+ forward (or backward) propagation, the code will write a warning.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTOptimizeHarmonicSpectrum'></a>OCTOptimizeHarmonicSpectrum</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><i>Default</i>: no
+<br/><br> WARNING: Experimental
+<br><br>
+ If <tt>OCTTargetOperator = oct_tg_hhg</tt>, the target is the harmonic emission spectrum.
+ In that case, you must supply an <tt>OCTOptimizeHarmonicSpectrum</tt> block in the <tt>inp</tt>
+ file. The target is given, in general, by:
+<br><br>
+ <math>J_1 = \int_0^\infty d\omega \alpha(\omega) H(\omega)</math>,
+<br><br>
+ where <math>H(\omega)</math> is the harmonic spectrum generated by the system, and
+ <math>\alpha(\omega)</math> is some function that determines what exactly we want
+ to optimize. The role of the <tt>OCTOptimizeHarmonicSpectrum</tt> block is to determine
+ this <math>\alpha(\omega)</math> function. Currently, this function is defined as:
+<br><br>
+ <math>\alpha(\omega) = \sum_{L=1}^{M} \frac{\alpha_L}{a_L} \sqcap( (\omega - L\omega_0)/a_L )</math>,
+<br><br>
+ where <math>omega_0</math> is the carrier frequency. <math>M</math> is
+ the number of columns in the <tt>OCTOptimizeHarmonicSpectrum</tt> block. The values of <i>L</i> will be listed
+ in the first row of this block; <math> alpha_L </math> in the second row, and <math>a_L</math> in
+ the third.
+<br><br>
+ Example:
+<br><br>
+ <tt>%OCTOptimizeHarmonicSpectrum
+ <br>&nbsp;&nbsp;  7    |  9    | 11
+ <br>&nbsp;&nbsp; -1    |  1    | -1
+ <br>&nbsp;&nbsp;  0.01 |  0.01 |  0.01
+ <br>%</tt>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTPenalty'></a>OCTPenalty</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 1.0
+<br/><br> The variable specifies the value of the penalty factor for the
+ integrated field strength (fluence). Large value = small fluence.
+ A transient shape can be specified using the block <tt>OCTLaserEnvelope</tt>.
+ In this case <tt>OCTPenalty</tt> is multiplied with time-dependent function.
+ The value depends on the coupling between the states. A good start might be a
+ value from 0.1 (strong fields) to 10 (weak fields).
+<br><br>
+ Note that if there are several control functions, one can specify this
+ variable as a one-line code, each column being the penalty factor for each
+ of the control functions. Make sure that the number of columns is equal to the
+ number of control functions. If it is not a block, all control functions will
+ have the same penalty factor.
+<br><br>
+ All penalty factors must be positive.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTRandomInitialGuess'></a>OCTRandomInitialGuess</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> The initial field to start the optimization search is usually given in the <tt>inp</tt> file,
+ through a <tt>TDExternalFields</tt> block. However, you can start from a random guess if you
+ set this variable to true.
+<br><br>
+ Note, however, that this is only valid for the "direct" optimization schemes; moreover
+ you still need to provide a <tt>TDExternalFields</tt> block.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTScheme'></a>OCTScheme</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: oct_algorithm_zbr98
+<br/><br> Optimal Control Theory can be performed with <tt>Octopus</tt> with a variety of different
+ algorithms. Not all of them can be used with any choice of target or control function
+ representation. For example, some algorithms cannot be used if
+ <tt>OCTControlRepresentation = control_function_real_time</tt>
+ (<tt>OCTScheme</tt> .gt. <tt>oct_algorithm_straight_iteration</tt>), and others cannot be used
+ if <tt>OCTControlRepresentation = control_function_parametrized</tt>
+ (<tt>OCTScheme</tt> .lt. <tt>oct_algorithm_straight_iteration</tt>).
+
+<br/><i>Options</i>:
+<ul>
+<li><b>oct_algorithm_zbr98</b>:  Backward-Forward-Backward scheme described in <i>JCP</i> <b>108</b>, 1953 (1998).
+ Only possible if target operator is a projection operator.
+ Provides fast, stable and monotonic convergence.
+</li>
+<li><b>oct_algorithm_zr98</b>:  Forward-Backward-Forward scheme described in <i>JCP</i> <b>109</b>, 385 (1998).
+ Works for projection and more general target operators also. The convergence is
+ stable but slower than ZBR98.
+ Note that local operators show an extremely slow convergence. It ensures monotonic
+ convergence.
+</li>
+<li><b>oct_algorithm_wg05</b>:  Forward-Backward scheme described in <i>J. Opt. B.</i> <b>7</b>, 300 (2005).
+ Works for all kinds of target operators, can be used with all kinds of filters, and
+ allows a fixed fluence.
+ The price is a rather unstable convergence.
+ If the restrictions set by the filter and fluence are reasonable, a good overlap can be
+ expected within 20 iterations.
+ No monotonic convergence.
+</li>
+<li><b>oct_algorithm_mt03</b>:  Basically an improved and generalized scheme.
+ Comparable to ZBR98/ZR98. See [Y. Maday and G. Turinici, <i>J. Chem. Phys.</i> <b>118</b>, 8191 (2003)].
+</li>
+<li><b>oct_algorithm_krotov</b>:  The procedure reported in [D. Tannor, V. Kazakov and V.
+ Orlov, in <i>Time-Dependent Quantum Molecular Dynamics</i>, edited by J. Broeckhove
+ and L. Lathouweres (Plenum, New York, 1992), pp. 347-360].
+</li>
+<li><b>oct_algorithm_straight_iteration</b>:  Straight iteration: one forward and one backward propagation is performed at each
+ iteration, both with the same control field. An output field is calculated with the
+ resulting wavefunctions. Note that this scheme typically does not converge, unless
+ some mixing (<tt>OCTMixing = yes</tt>) is used.
+</li>
+<li><b>oct_algorithm_cg</b>:  Conjugate-gradients, as implemented in the GNU GSL library.
+</li>
+<li><b>oct_algorithm_direct</b>:  This is a "direct" optimization scheme. This means that we do not make use of the
+ "usual" QOCT equations (backward-forward propagations, etc), but we use some gradient-free
+ maximization algorithm for the function that we want to optimize. In this case, the
+ maximization algorithm is the Nelder-Mead algorithm as implemeted in the GSL. The function
+ values are obtained by successive forward propagations.
+</li>
+<li><b>oct_algorithm_newuoa</b>:  This is exactly the same as <tt>oct_algorithm_direct</tt>, except in this case the maximization
+ algorithm is the so-called NEWUOA algorithm [M. J. D. Powell, <i>IMA J. Numer. Analysis</i>
+ <b>28</b>, 649-664 (2008)].
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTSpatialCurrWeight'></a>OCTSpatialCurrWeight</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><br> Can be seen as a position dependent <tt>OCTCurrentWeight</tt>. Consequently, it
+ weights contribution of current j to its functional J1_c[j] according to the position in space.
+ For example, <tt>oct_curr_square</tt> thus becomes
+ J1_c[j] = <tt>OCTCurrentWeight</tt> \int |j(r)|^2 <tt>OCTSpatialCurrWeight</tt>(r) dr.
+<br><br>
+ It is defined <tt>OCTSpatialCurrWeight</tt>(r) = g(x)*g(y)*g(z), where
+ g(x) = \sum_{i} 1/(1+exp( -fact*(x-startpoint_i) )) - 1/(1+exp( -fact*(x-endpoint_i) )).
+ If not specified, g(x) = 1.
+<br><br>
+ Each g(x) is represented by one line of the block that has the following form
+<br><br>
+ <tt>%OCTSpatialCurrWeight
+ <br>&nbsp;&nbsp;  dimension  |  fact |  startpoint_1  | endpoint_1  | startpoint_2 | endpoint_2 |...
+ <br>%</tt>
+<br><br>
+ There are no restrictions on the number of lines, nor on the number of pairs of start- and endpoints.
+ Attention: <tt>startpoint</tt> and <tt>endpoint</tt> have to be supplied pairwise
+ with <tt>startpoint .lt. endpoint</tt>. <tt>dimension .gt. 0</tt> is integer, <tt>fact</tt> is float.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTStartIterCurrTg'></a>OCTStartIterCurrTg</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><br> Allows for a time dependent target for the current without defining it for the total
+ time-interval of the simulation.
+ Thus it can be switched on at the iteration desired, <tt>OCTStartIterCurrTg</tt> .ge. 0
+ and  <tt>OCTStartIterCurrTg</tt> .lt. <tt>TDMaximumIter</tt>.
+ Tip: If you would like to specify a real time for switching
+ the functional on rather than the number of steps, just use something
+ like:
+ <tt>OCTStartIterCurrTg</tt> = 100.0 / <tt>TDTimeStep</tt>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTTargetDensity'></a>OCTTargetDensity</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: string
+<br/><br> If <tt>OCTTargetOperator = oct_tg_density</tt>, then one must supply the target density
+ that should be searched for. This one can do by supplying a string through
+ the variable <tt>OCTTargetDensity</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTTargetDensityFromState'></a>OCTTargetDensityFromState</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><i>Default</i>: no
+<br/><br> If <tt>OCTTargetOperator = oct_tg_density</tt>, and <tt>OCTLocalTarget = "OCTTargetDensityFromState"</tt>,
+ you must specify a <tt>OCTTargetDensityState</tt> block, in order to specify which linear
+ combination of the states present in <tt>restart/gs</tt> is used to
+ create the target density.
+<br><br>
+ The syntax is the same as the <tt>TransformStates</tt> block.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTTargetOperator'></a>OCTTargetOperator</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: oct_tg_gstransformation
+<br/><br> The variable <tt>OCTTargetOperator</tt> prescribes which kind of target functional is
+ to be used.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>oct_tg_velocity</b>:  The target is a function of the velocities of the nuclei at the end of the influence of
+ the external field, defined by <tt>OCTVelocityTarget</tt>
+</li>
+<li><b>oct_tg_current</b>:  The target is exclusively a target in terms of the current.
+ If combined with target that involves the density, set variable <tt>OCTTargetOperator</tt>= <tt>OCTTargetDensity</tt>
+ and set explicitly <tt>OCTCurrentFunctional</tt>. Only this combination is enabled. All other targets force
+ <tt>OCTCurrentFunctional</tt>=0.
+</li>
+<li><b>oct_tg_groundstate</b>:  The target operator is a projection operator on the ground state, <i>i.e.</i> the
+ objective is to populate the ground state as much as possible.
+</li>
+<li><b>oct_tg_excited</b>:  The target operator is an "excited state". This means that the target operator
+ is a linear combination of Slater determinants, each one formed by replacing
+ in the ground-state Slater determinant one occupied state with one excited
+ state (<i>i.e.</i> "single excitations"). The description of which excitations are
+ used, and with which weights, should be given in a file called
+ <tt>oct-excited-state-target</tt>. This is still in very preliminary, experimental
+ phase. See the documentation of subroutine <tt>excited_states_init</tt> in the source
+ code in order to use this feature.
+</li>
+<li><b>oct_tg_gstransformation</b>:  The target operator is a projection operator on a transformation of the ground-state
+ orbitals defined by the block <tt>OCTTargetTransformStates</tt>.
+</li>
+<li><b>oct_tg_userdefined</b>:  Allows to define target state by using <tt>OCTTargetUserdefined</tt>.
+</li>
+<li><b>oct_tg_density</b>:  The target operator is a given density, <i>i.e.</i> the final state should have a density
+ as close as possible as the one given in the input file, either from the variable
+ <tt>OCTTargetDensityFromState</tt>, or from <tt>OCTTargetDensity</tt>. It can be extended to a
+ combination with a current functional by setting <tt>OCTCurrentFunctional</tt> and attributing
+ a value to <tt>OCTCurrentWeight</tt>.
+</li>
+<li><b>oct_tg_local</b>:  The target operator is a local operator.
+</li>
+<li><b>oct_tg_td_local</b>:  The target operator is a time-dependent local operator.
+</li>
+<li><b>oct_tg_exclude_state</b>:  Target operator is the projection onto the complement of a given state, given by the
+ block <tt>OCTTargetTransformStates</tt>. This means that the target operator is the unity
+ operator minus the projector onto that state.
+</li>
+<li><b>oct_tg_hhg</b>:  The target is the optimization of the HHG yield.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTTargetTransformStates'></a>OCTTargetTransformStates</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><i>Default</i>: no
+<br/><br> If <tt>OCTTargetOperator = oct_tg_gstransformation</tt>, you must specify a
+ <tt>OCTTargetTransformStates</tt> block, in order to specify which linear
+ combination of the states present in <tt>restart/gs</tt> is used to
+ create the target state.
+<br><br>
+ The syntax is the same as the <tt>TransformStates</tt> block.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTTargetUserdefined'></a>OCTTargetUserdefined</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><br> Define a target state. Syntax follows the one of the <tt>UserDefinedStates</tt> block.
+ Example:
+<br><br>
+ <tt>%OCTTargetUserdefined
+ <br>&nbsp;&nbsp; 1 | 1 | 1 |  "exp(-r^2)*exp(-i*0.2*x)"
+ <br>%</tt>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTVelocityDerivatives'></a>OCTVelocityDerivatives</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><br> If <tt>OCTTargetOperator = oct_tg_velocity</tt>, and
+ <tt>OCTScheme = oct_algorithm_cg</tt> then you must supply
+ the target in terms of the ionic velocities AND the derivatives
+ of the target with respect to the ionic velocity components.
+ The derivatives are supplied via strings trough the block
+ <tt>OCTVelocityDerivatives</tt>.
+ Each velocity component is supplied by <tt>"v[n_atom,vec_comp]"</tt>,
+ while "n_atom" is the atom number, corresponding to the
+ <tt>Coordinates</tt> block and "vec_comp" is the corresponding
+ vector component of the velocity. The first line of the
+ <tt>OCTVelocityDerivatives</tt> block contains the derivatives
+ with respect to "v[1,*]", the second with respect to "v[2,*]" and so
+ on. The first column contains all derivatives with respect "v[*,1]",
+ the second with respect to "v[*,2]" and the third w.r.t. "v[*,3]".
+ As an example, we show the <tt>OCTVelocityDerivatives</tt> block
+ corresponding to the target shown in the <tt>OCTVelocityTarget</tt>
+ help section:
+<br><br>
+ <tt>%OCTVelocityDerivatives</tt>
+ <tt> " 2*(v[1,1]-v[2,1])" | " 2*(v[1,2]-v[2,2])" | " 2*(v[1,3]-v[2,3])" </tt>
+ <tt> "-2*(v[1,1]-v[2,1])" | "-2*(v[1,2]-v[2,2])" | "-2*(v[1,3]-v[2,3])" </tt>
+ <tt>%</tt>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OCTVelocityTarget'></a>OCTVelocityTarget</b>
+<br/><i>Section</i>: Calculation Modes::Optimal Control
+<br/><i>Type</i>: block
+<br/><br> If <tt>OCTTargetOperator = oct_tg_velocity</tt>, then one must supply the
+ target to optimize in terms of the ionic velocities. This is done by
+ supplying a string trough the block <tt>OCTVelocityTarget</tt>.
+ Each velocity component is supplied by <tt>"v[n_atom,vec_comp]"</tt>,
+ while "n_atom" is the respective atom number, corresponding to the
+ <tt>Coordinates</tt> block and "vec_comp" is the corresponding
+ vector component of the velocity. The target string can be
+ supplied by using several lines in the OCTTargetOperator block.
+ As an example, the following target can be used to maximize the
+ velocity difference between atom 1 and 2 (in a 3D system):
+<br><br>
+ <tt>%OCTVelocityTarget</tt>
+ <tt> "(v[1,1]-v[2,1])^2 + (v[1,2]-v[2,2])^2 + "</tt>
+ <tt> "(v[1,3]-v[2,3])^2"</tt>
+ <tt>%</tt>
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+<a name='Calculation Modes::Unoccupied States'</a>
+<H2>Calculation Modes::Unoccupied States</H2>
+
+
+<p><b><a name='NumberUnoccStates'></a>NumberUnoccStates</b>
+<br/><i>Section</i>: Calculation Modes::Unoccupied States
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 5
+<br/><br> How many unoccupied states to compute.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='UnoccMaximumIter'></a>UnoccMaximumIter</b>
+<br/><i>Section</i>: Calculation Modes::Unoccupied States
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 50
+<br/><br> Maximum number of eigensolver iterations. The code will stop even if convergence
+ has not been achieved. -1 means unlimited.
+
+</p><hr width='30%' align='left'/>
+
+</body>
+</html>

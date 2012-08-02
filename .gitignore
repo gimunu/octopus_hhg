@@ -26,4 +26,4 @@ share/vari*
 autom4te.cache/*
 build-aux/*
 .deps
-doc/*
+#doc/*

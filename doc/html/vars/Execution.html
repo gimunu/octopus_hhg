@@ -1,0 +1,729 @@
+
+<html>
+<head>
+
+<style>
+   BODY {background-color: white; 
+         font-size: 10pt; font-family: verdana,helvetica;}
+   A  {text-decoration: none;color: blue}
+</style>
+</head>
+<body>
+
+<a name='Execution'</a>
+<H2>Execution</H2>
+
+
+<p><b><a name='FromScratch'></a>FromScratch</b>
+<br/><i>Section</i>: Execution
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> When this variable is set to true, <tt>Octopus</tt> will perform a
+ calculation from the beginning, without looking for restart
+ information.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Execution::Debug'</a>
+<H2>Execution::Debug</H2>
+
+
+<p><b><a name='DebugLevel'></a>DebugLevel</b>
+<br/><i>Section</i>: Execution::Debug
+<br/><i>Type</i>: integer
+<br/><br> This variable decides whether or not to enter debug mode.
+ If it is greater than 0, different amounts of additional information
+ are written to standard output and additional assertion checks are performed.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>0</b>:  (default) <tt>Octopus</tt> does not enter debug mode.
+</li>
+<li><b>1</b>:  Moderate amount of debug output; assertion checks enabled.
+</li>
+<li><b>2</b>:  The code prints a stack trace as it enters end exits subroutines.
+ This is useful for developers and you should include this output when
+ submitting a bug report.
+</li>
+<li><b>99</b>:  The debug output is additionally written to files in the <tt>debug</tt>
+ directory. For each node (when running in parallel) there is a file called
+ <tt>debug_trace.&lt;rank&gt;</tt>. Writing these files slows down the code by a huge factor and
+ it is usually only necessary for parallel runs. In the serial case all
+ the information can be obtained from standard out.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ExperimentalFeatures'></a>ExperimentalFeatures</b>
+<br/><i>Section</i>: Execution::Debug
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> If true, allows the use of certain parts of the code that are
+ still under development and are not suitable for production
+ runs. This should not be used unless you know what you are doing.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ForceComplex'></a>ForceComplex</b>
+<br/><i>Section</i>: Execution::Debug
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> Normally <tt>Octopus</tt> determines automatically the type necessary
+ for the wavefunctions. When set to yes this variable will
+ force the use of complex wavefunctions.
+<br><br>
+ Warning: This variable is designed for testing and
+ benchmarking and normal users need not use it.
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MPIDebugHook'></a>MPIDebugHook</b>
+<br/><i>Section</i>: Execution::Debug
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> When debugging the code in parallel it is usually difficult to find the origin
+ of race conditions that appear in MPI communications. This variable introduces
+ a facility to control separate MPI processes. If set to yes, all nodes will
+ start up, but will get trapped in an endless loop. In every cycle of the loop
+ each node is sleeping for one second and is then checking if a file with the
+ name <tt>node_hook.xxx</tt> (where <tt>xxx</tt> denotes the node number) exists. A given node can
+ only be released from the loop if the corresponding file is created. This allows
+ to selectively run, <i>e.g.</i>, a compute node first followed by the master node. Or, by
+ reversing the file creation of the node hooks, to run the master first followed
+ by a compute node.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ReportMemory'></a>ReportMemory</b>
+<br/><i>Section</i>: Execution::Debug
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> If true, <tt>Octopus</tt> will print as part of the screen output
+ information about the memory the code is using. The quantity
+ reported is an approximation to the size of the heap and
+ generally it is a lower bound to the actual memory <tt>Octopus</tt> is
+ using. By default this variable is set to false.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Execution::IO'</a>
+<H2>Execution::IO</H2>
+
+
+<p><b><a name='FlushMessages'></a>FlushMessages</b>
+<br/><i>Section</i>: Execution::IO
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> In addition to writing to stdout and stderr, the code messages may also be
+ flushed to <tt>messages.stdout</tt> and <tt>messages.stderr</tt>, if this variable is
+ set to yes.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='RestartDir'></a>RestartDir</b>
+<br/><i>Section</i>: Execution::IO
+<br/><i>Type</i>: string
+<br/><i>Default</i>: ''
+<br/><br> When <tt>Octopus</tt> reads restart files, e.g. when running a time-propagation
+ after a ground-state calculation, these files will be read from
+ <tt>&lt;RestartDir&gt/</tt>. Usually, <tt>RestartDir</tt> is
+ <tt>TmpDir</tt> but in a transport calculation, the output of
+ a periodic dataset is required to calculate the extended ground state.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='RestartWrite'></a>RestartWrite</b>
+<br/><i>Section</i>: Execution::IO
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: true
+<br/><br> If this variable is set to no, restart information is not
+ written. The default is yes.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='TmpDir'></a>TmpDir</b>
+<br/><i>Section</i>: Execution::IO
+<br/><i>Type</i>: string
+<br/><i>Default</i>: "restart/"
+<br/><br> The name of the directory where <tt>Octopus</tt> stores binary information
+ such as the wavefunctions.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='WorkDir'></a>WorkDir</b>
+<br/><i>Section</i>: Execution::IO
+<br/><i>Type</i>: string
+<br/><i>Default</i>: "."
+<br/><br> By default, all files are written and read from the working directory,
+ <i>i.e.</i> the directory from which the executable was launched. This behavior can
+ be changed by setting this variable: if you give it a name (other than ".")
+ the files are written and read in that directory.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='stderr'></a>stderr</b>
+<br/><i>Section</i>: Execution::IO
+<br/><i>Type</i>: string
+<br/><i>Default</i>: "-"
+<br/><br> The standard error by default goes to, well, to standard error. This can
+ be changed by setting this variable: if you give it a name (other than "-")
+ the output stream is printed in that file instead.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='stdout'></a>stdout</b>
+<br/><i>Section</i>: Execution::IO
+<br/><i>Type</i>: string
+<br/><i>Default</i>: "-"
+<br/><br> The standard output by default goes to, well, to standard output. This can
+ be changed by setting this variable: if you give it a name (other than "-")
+ the output stream is printed in that file instead.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Execution::OpenCL'</a>
+<H2>Execution::OpenCL</H2>
+
+
+<p><b><a name='DisableOpenCL'></a>DisableOpenCL</b>
+<br/><i>Section</i>: Execution::OpenCL
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: yes
+<br/><br> If Octopus was compiled with OpenCL support, it will try to
+ initialize and use an OpenCL device. By setting this variable
+ to <tt>yes</tt> you tell Octopus not to use OpenCL.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OpenCLDevice'></a>OpenCLDevice</b>
+<br/><i>Section</i>: Execution::OpenCL
+<br/><i>Type</i>: integer
+<br/><br> This variable selects the OpenCL device that Octopus will
+ use. You can specify one of the options below or a numerical
+ id to select a specific device.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>gpu</b>:  If available, Octopus will use a GPU for OpenCL. This is the default.
+</li>
+<li><b>cpu</b>:  If available, Octopus will use a GPU for OpenCL.
+</li>
+<li><b>accelerator</b>:  If available, Octopus will use an accelerator for OpenCL.
+</li>
+<li><b>cl_default</b>:  Octopus will use the default device specified by the OpenCL
+ implementation.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OpenCLPlatform'></a>OpenCLPlatform</b>
+<br/><i>Section</i>: Execution::OpenCL
+<br/><i>Type</i>: integer
+<br/><br> This variable selects the OpenCL platform that Octopus will
+ use. You can give an explicit platform number or use one of
+ the options that select a particular vendor
+ implementation. Platform 0 is used by default.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>amd</b>:  Use the AMD OpenCL platform.
+</li>
+<li><b>nvidia</b>:  Use the Nvidia OpenCL platform.
+</li>
+<li><b>ati</b>:  Use the ATI (old AMD) OpenCL platform.
+</li>
+<li><b>intel</b>:  Use the Intel OpenCL platform.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+<a name='Execution::Optimization'</a>
+<H2>Execution::Optimization</H2>
+
+
+<p><b><a name='MemoryLimit'></a>MemoryLimit</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: -1
+<br/><br> If positive, <tt>Octopus</tt> will stop if more memory than <tt>MemoryLimit</tt>
+ is requested (in kb). Note that this variable only works when
+ <tt>ProfilingMode = prof_memory(_full)</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MeshBlockSize'></a>MeshBlockSize</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: block
+<br/><br> To improve memory-access locality when calculating derivatives,
+ <tt>Octopus</tt> arranges mesh points in blocks. This variable
+ controls the size of this blocks in the different
+ directions. The default is | 20 | 20 | 100 |. (This variable only
+ affects the performance of <tt>Octopus</tt> and not the
+ results.)
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OperateComplex'></a>OperateComplex</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: autodetect
+<br/><br> This variable selects the subroutine used to apply non-local
+ operators over the grid for complex functions.
+ By default the optimized version is used.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>fortran</b>:  The standard Fortran function.
+</li>
+<li><b>optimized</b>:  This version is optimized using vector primitives (if available).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OperateDouble'></a>OperateDouble</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: autodetect
+<br/><br> This variable selects the subroutine used to apply non-local
+ operators over the grid for real functions.
+ By default the optimized version is used.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>fortran</b>:  The standard Fortran function.
+</li>
+<li><b>optimized</b>:  This version is optimized using vector primitives (if available).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OperateOpenCL'></a>OperateOpenCL</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: split
+<br/><br> This variable selects the subroutine used to apply non-local
+ operators over the grid when opencl is used. The default is
+ split.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>invmap</b>:  The standard implementation ported to OpenCL.
+</li>
+<li><b>map</b>:  A different version, more suitable for GPUs.
+</li>
+<li><b>split</b>:  This operator uses two different paths, one for points where
+ the operator can be applied in blocks and other for single
+ points.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='OperateOpenCLVecSize'></a>OperateOpenCLVecSize</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 1
+<br/><br> Selects the size of vectors for the OpenCL application of
+ finite-difference operators. Valid values are 1, 2, 4, 8 and
+ 16. The default is 1.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ProfilingAllNodes'></a>ProfilingAllNodes</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: no
+<br/><br> This variable controls whether all nodes print the time
+ profiling output. If set to no, the default, only the root node
+ will write the profile. If set to yes, all nodes will print it.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ProfilingMode'></a>ProfilingMode</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: no
+<br/><br> Use this variable to run <tt>Octopus</tt> in profiling mode. In this mode
+ <tt>Octopus</tt> records the time spent in certain areas of the code and
+ the number of times this code is executed. These numbers
+ are written in <tt>./profiling.NNN/profiling.nnn</tt> with <tt>nnn</tt> being the
+ node number (<tt>000</tt> in serial) and <tt>NNN</tt> the number of processors.
+ This is mainly for development purposes. Note, however, that
+ <tt>Octopus</tt> should be compiled with <tt>--disable-debug</tt> to do proper
+ profiling.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>no</b>:  No profiling information is generated.
+</li>
+<li><b>prof_time</b>:  Profile the time spent in defined profiling regions.
+</li>
+<li><b>prof_memory</b>:  As well as the time, memory usage is reported.
+</li>
+<li><b>prof_memory_full</b>:  As well as the time, full memory usage is reported.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='StatesBlockSize'></a>StatesBlockSize</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><br> Some routines work over blocks of eigenfunctions, which
+ generally improves performance at the expense of increased
+ memory consumption. This variable selects the size of the
+ blocks to be used. If OpenCl is enabled, the default is 32;
+ otherwise it is max(4, 2*nthreads).
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='StatesCLDeviceMemory'></a>StatesCLDeviceMemory</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: float
+<br/><br> This variable select the amount of OpenCL device memory that
+ would be used by Octopus to store the states.
+<br><br>
+ A number smaller than 1 indicates a fraction of the total
+ device memory. A number larger than one indicates an absolute
+ amount of memory in megabytes. A negative number indicates an
+ amount of memory in megabytes that would be substracted from
+ the total device memory. The default is -512.
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='StatesOrthogonalization'></a>StatesOrthogonalization</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: gram_schmidt
+<br/><br> The full orthogonalization method used by some
+ eigensolvers. The default is gram_schmidt. With state
+ parallelization the default is par_gram_schmidt.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>gram_schmidt</b>:  The standard Gram-Schmidt orthogonalization implemented using
+ BLAS/LAPACK. Can be used with domain parallelization but not
+ state parallelization.
+</li>
+<li><b>par_gram_schmidt</b>:  The standard Gram-Schmidt orthogonalization implemented using
+ ScaLAPACK. Compatible with states parallelization.
+</li>
+<li><b>mgs</b>:  Modified Gram-Schmidt orthogonalization.
+</li>
+<li><b>qr</b>:  (Experimental) Orthogonalization is performed based on a QR
+ decomposition based on Lapack routines _getrf and _orgqr.
+ Compatible with states parallelization.
+</li>
+<li><b>old_gram_schmidt</b>:  Old Gram-Schmidt implementation, compatible with states
+ parallelization.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='StatesPack'></a>StatesPack</b>
+<br/><i>Section</i>: Execution::Optimization
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> (Experimental) When set to yes, states are stored in packed
+ mode, which improves performance considerably. However this
+ is not fully implemented and it might give wrong results. The
+ default is no.
+<br><br>
+ If OpenCL is used and this variable is set to yes, Octopus
+ will store the wave-functions in device (GPU) memory. If
+ there is not enough memory to store all the wave-functions,
+ execution will stop with an error.
+
+</p><hr width='30%' align='left'/>
+
+<a name='Execution::Parallelization'</a>
+<H2>Execution::Parallelization</H2>
+
+
+<p><b><a name='MeshPartition'></a>MeshPartition</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: integer
+<br/><br> Decides which algorithm is used to partition the mesh. By default,
+ <tt>graph</tt> partitioning is used for 8 or more partitions, and <tt>rcb</tt> for fewer.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>rcb</b>:  Recursive coordinate bisection partitioning.
+</li>
+<li><b>rib</b>:  Recursive inertial bisection partitioning.
+</li>
+<li><b>hsfc</b>:  Hilbert space-filling curve partitioning.
+</li>
+<li><b>reftree</b>:  Refinement-tree-based partitioning.
+</li>
+<li><b>graph</b>:  Graph partitioning.
+</li>
+<li><b>hypergraph</b>:  Hypergraph partitioning.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MeshPartitionFromScratch'></a>MeshPartitionFromScratch</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> If set to no (the default) Octopus will try to use the mesh
+ partition from a previous run if available.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MeshPartitionGAMaxSteps'></a>MeshPartitionGAMaxSteps</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 1000
+<br/><br> The number of steps performed for the genetic algorithm used
+ to optimize the mesh partition. The default is 1000.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MeshPartitionGAPopulation'></a>MeshPartitionGAPopulation</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 30
+<br/><br> The size of the population used for the genetic algorithm used
+ to optimize the mesh partition. The default is 30.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MeshPartitionPackage'></a>MeshPartitionPackage</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: metis
+<br/><br> Decides which library to use to perform the mesh partition. By
+ default, METIS is used (if available).
+
+<br/><i>Options</i>:
+<ul>
+<li><b>metis</b>:  METIS library.
+</li>
+<li><b>zoltan</b>:  Zoltan library.
+</li>
+<li><b>ga</b>:  (Experimental) Genetic-algorithm optimization of the grid partition.
+</li>
+<li><b>pfft_part</b>:  (Experimental) Use PFFT to perform the mesh partition.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MeshPartitionStencil'></a>MeshPartitionStencil</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: star
+<br/><br> To partition the mesh, it is necessary to calculate the connection
+ graph connecting the points. This variable selects which stencil
+ is used to do this. The default is the order-one star stencil.
+ Alternatively, the stencil used for the Laplacian may be used.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>stencil_star</b>:  An order-one star stencil.
+</li>
+<li><b>laplacian</b>:  The stencil used for the Laplacian is used to calculate the
+ partition. This in principle should give a better partition, but
+ it is slower and requires more memory.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='MeshUseTopology'></a>MeshUseTopology</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: false
+<br/><br> (experimental) If enabled, <tt>Octopus</tt> will use an MPI virtual
+ topology to map the processors. This can improve performance
+ for certain interconnection systems.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ParallelizationGroupRanks'></a>ParallelizationGroupRanks</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: block
+<br/><br> Specifies the size of the groups used for the
+ parallelization. For example (n_d, n_s, n_k) means we have
+ <i>n_p*n_s*n_k</i> processors and that the <i>k</i>-points should be
+ divided in <i>n_k</i> groups, the states in <i>n_s</i> groups, and each
+ state in <i>n_d</i> domains. You can pass the value <tt>fill</tt> to one
+ field: it will be replaced by the value required to complete
+ the number of processors in the run.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>fill</b>:  Replaced by the value required to complete the number of processors.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ParallelizationNumberSlaves'></a>ParallelizationNumberSlaves</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: integer
+<br/><br> Slaves are nodes used for task parallelization. The number of
+ such nodes is given by this variable multiplied by the number
+ of domains used in domain parallelization. The default is 0.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ParallelizationOfDerivatives'></a>ParallelizationOfDerivatives</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: non_blocking
+<br/><br> This option selects how the communication of mesh boundaries is performed.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>blocking</b>:  Blocking communication.
+</li>
+<li><b>non_blocking</b>:  Communication is based on non-blocking point-to-point communication. This is the default.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ParallelizationPoissonAllNodes'></a>ParallelizationPoissonAllNodes</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: true
+<br/><br> When running in parallel, this variable selects whether the
+ Poisson solver should divide the work among all nodes or only
+ among the parallelization-in-domains groups.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ParallelizationStrategy'></a>ParallelizationStrategy</b>
+<br/><i>Section</i>: Execution::Parallelization
+<br/><i>Type</i>: flag
+<br/><br> Specifies what kind of parallelization strategy <tt>Octopus</tt> should use.
+ The values can be combined: for example, <tt>par_domains + par_states</tt>
+ means a combined parallelization in domains and states.
+ Default: <tt>par_domains + par_states</tt> for <tt>CalculationMode = td</tt>,
+ <tt>par_domains + par_other</tt> for <tt>CalculationMode = casida</tt>,
+ otherwise <tt>par_domains</tt>.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>serial</b>:  <tt>Octopus</tt> will run in serial.
+</li>
+<li><b>par_domains</b>:  <tt>Octopus</tt> will run parallel in domains.
+</li>
+<li><b>par_states</b>:  <tt>Octopus</tt> will run parallel in states.
+</li>
+<li><b>par_kpoints</b>:  <tt>Octopus</tt> will run parallel in <i>k</i>-points/spin.
+</li>
+<li><b>par_other</b>:  Run-mode-dependent. For example, in <tt>casida</tt>, it means parallelization in <i>e-h</i> pairs.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+<a name='Execution::Units'</a>
+<H2>Execution::Units</H2>
+
+
+<p><b><a name='Units'></a>Units</b>
+<br/><i>Section</i>: Execution::Units
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: atomic
+<br/><br> This variable selects the units that Octopus use for
+ input and output.
+<br><br>
+ Atomic units seem to be the preferred system in the atomic and
+ molecular physics community. Internally, the code works in
+ atomic units. However, for input or output, some people like
+ to use a system based in eV for energies and <math>\AA</math>
+ for length. The default is atomic units.
+<br><br>
+ Normally time units are derived from energy and length units,
+ so it is measured in <math>\hbar/Hartree</math> or
+ <math>\hbar/electronvolt</math>. Alternatively you can tell
+ Octopus to use femtoseconds as the time unit by adding the
+ value <tt>femtoseconds</tt> (Note that no other unit will be
+ based on femtoseconds). So for example you can use:
+<br><br>
+ <tt>Units = femtoseconds</tt>
+<br><br>
+ or
+<br><br>
+ <tt>Units = ev_angstrom + femtoseconds</tt>
+<br><br>
+ You can use different unit systems for input and output by
+ setting the <tt>UnitsInput</tt> and <tt>UnitsOutput</tt>.
+<br><br>
+ Warning 1: All files read on input will also be treated using
+ these units, including XYZ geometry files.
+<br><br>
+ Warning 2: Some values are treated in their most common units,
+ for example atomic masses (a.m.u.), electron effective masses
+ (electron mass), vibrational frequencies
+ (cm<sup>-1</sup>) or temperatures (Kelvin). The unit of charge is always
+ the electronic charge <i>e</i>.
+<br><br>
+
+<br/><i>Options</i>:
+<ul>
+<li><b>atomic</b>:  Atomic units.
+</li>
+<li><b>ev_angstrom</b>:  Electronvolts for energy, Angstroms for length, the rest of the
+ units are derived from these and <math>hbar=1</math>.
+</li>
+<li><b>femtoseconds</b>:  (Experimental) If you add this value to the other options,
+ Octopus will treat time in femtoseconds units.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='UnitsInput'></a>UnitsInput</b>
+<br/><i>Section</i>: Execution::Units
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: atomic
+<br/><br> Same as <tt>Units</tt>, but only refers to input values.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='UnitsOutput'></a>UnitsOutput</b>
+<br/><i>Section</i>: Execution::Units
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: atomic
+<br/><br> Same as <tt>Units</tt>, but only refers to output values.
+
+</p><hr width='30%' align='left'/>
+
+</body>
+</html>

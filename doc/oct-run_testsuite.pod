@@ -1,0 +1,94 @@
+ema=head1 NAME
+
+oct-run_testsuite - Script to run the B<octopus> testsuite.
+
+=head1 SYNOPSIS
+
+=over
+
+=item B<oct-run_testsuite> [option]...
+
+=back
+
+=head1 DESCRIPTION
+
+This script is one of the B<octopus> utilities.
+
+This script runs the Octopus testsuite.
+
+The man pages of Octopus and of the auxiliary Octopus
+sub-programs (oct-something) are not intended to contain the
+documentation of the programs, but only their basic
+description. For where to find more documentation, see the
+L<SEE ALSO> section below.
+
+=over
+
+=item B<-h> 
+
+Prints out a short help message.
+
+=item B<-n>
+
+Run in dry mode (show what would be executed).
+
+=item B<-g> I<LIST>
+
+Comma-separated list of test groups to run. If not present, all tests
+are run.
+
+=item B<-q>
+
+Query testfiles belonging to groups given with B<-g> option. No tests
+are performed.
+
+=item B<-d> I<DIR>
+
+Directory where to look for the testsuite.
+
+=item B<-l>
+
+Local run.
+
+=item B<-e> I<SUFFIX>
+
+Suffix to append to the Octopus executable file name.
+
+=item B<-p> I<PREFIX>
+
+Installation prefix [default: /usr].
+
+=item B<-w>
+
+Run without MPI (parallel) tests.
+
+=item B<-c>
+
+Clean up all .log files after the testuite run.
+
+=item B<-m> I<ADDRESS>
+
+Mail report to address.
+
+=back
+
+=head1 AUTHOR
+
+Written by H. Appel.
+
+=head1 REPORTING BUGS
+
+Report bugs to <appel@physik.fu-berlin.de>.
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005 H. Appel.
+
+This is free software; see the source for copying conditions.  There
+is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+
+=head1 SEE ALSO
+
+The largest source of documentation is the Octopus
+wiki: S<http://www.tddft.org/programs/octopus/wiki/>.

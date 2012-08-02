@@ -1,0 +1,375 @@
+
+<html>
+<head>
+
+<style>
+   BODY {background-color: white; 
+         font-size: 10pt; font-family: verdana,helvetica;}
+   A  {text-decoration: none;color: blue}
+</style>
+</head>
+<body>
+
+<a name='System'</a>
+<H2>System</H2>
+
+
+<p><b><a name='ComplexBoundaries'></a>ComplexBoundaries</b>
+<br/><i>Section</i>: System
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> (Experimental) If enabled the system will have complex
+ boundaries defined by an electrostatic potential. Must be
+ used with the SETE poisson solver.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='Dimensions'></a>Dimensions</b>
+<br/><i>Section</i>: System
+<br/><i>Type</i>: integer
+<br/><i>Default</i>: 3
+<br/><br> <tt>Octopus</tt> can run in 1, 2 or 3 dimensions, depending on the value of this
+ variable. Note that not all input variables may be available in all cases.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PeriodicDimensions'></a>PeriodicDimensions</b>
+<br/><i>Section</i>: System
+<br/><i>Type</i>: integer
+<br/><br> Define how many directions are to be considered periodic. It has to be a number
+ between zero and <tt>Dimensions</tt>.
+
+<br/><i>Options</i>:
+<ul>
+<li><b>0</b>:  No direction is periodic (molecule).
+</li>
+<li><b>1</b>:  The <i>x</i> direction is periodic (wire, polymer).
+</li>
+<li><b>2</b>:  The <i>x</i> and <i>y</i> directions are periodic (slab).
+</li>
+<li><b>3</b>:  The <i>x</i>, <i>y</i>, and <i>z</i> directions are periodic (bulk).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+<a name='System::Coordinates'</a>
+<H2>System::Coordinates</H2>
+
+
+<p><b><a name='Coordinates'></a>Coordinates</b>
+<br/><i>Section</i>: System::Coordinates
+<br/><i>Type</i>: block
+<br/><br> If neither <tt>XYZCoordinates</tt> nor <tt>PDBCoordinates</tt> was found, <tt>Octopus</tt>
+ tries to read the coordinates for the atoms from the block <tt>Coordinates</tt>. The
+ format is quite straightforward:
+<br><br>
+ <tt>%Coordinates
+ <br>&nbsp;&nbsp;'C' |      -0.56415 | 0.0 | 0.0 | no
+ <br>&nbsp;&nbsp;'O' | &nbsp;0.56415 | 0.0 | 0.0 | no
+ <br>%</tt>
+<br><br>
+ The first line defines a carbon atom at coordinates (-0.56415, 0.0, 0.0),
+ that is <b>not</b> allowed to move during dynamical simulations. The second line has
+ a similar meaning. This block obviously defines a carbon monoxide molecule, if the
+ input units are <tt>eV_Angstrom</tt>. The number of coordinates for each species
+ must be equal to the dimension of your space (generally 3).
+ Note that in this way it is possible to fix some of the atoms (this
+ is not possible when specifying the coordinates through a <tt>PDBCoordinates</tt> or
+ <tt>XYZCoordinates</tt> file). The last column is optional, and the default is yes.
+ It is always possible to fix <b>all</b> atoms using the <tt>MoveIons</tt> directive.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='PDBCoordinates'></a>PDBCoordinates</b>
+<br/><i>Section</i>: System::Coordinates
+<br/><i>Type</i>: string
+<br/><br> If this variable is present, the program tries to read the atomic coordinates
+ from the file specified by its value. The PDB (Protein Data Bank,
+ <tt>http://www.rcsb.org/pdb/</tt>) format is quite complicated, and it goes
+ well beyond the scope of this manual. You can find a comprehensive
+ description <a href='http://www.wwpdb.org/docs.html'>here</a>.
+ From the plethora of instructions defined in the PDB standard, <tt>Octopus</tt>
+ only reads two, <tt>ATOM</tt> and <tt>HETATOM</tt>. From these fields, it reads:
+ <ul>
+ <li> columns 13-16: The species; in fact <tt>Octopus</tt> only cares about the
+ first letter - "CA" and "CB" will both refer to carbon - so elements whose
+ chemical symbol has more than one letter cannot be represented in this way.
+ So, if you want to run mercury (Hg), please use one of the other two methods
+ to input the coordinates: <tt>XYZCoordinates</tt> or <tt>Coordinates</tt>.</li>
+ <li> columns 18-21: The residue. If residue is <tt>QM</tt>, the atom is treated by quantum
+ mechanics; otherwise it is simply treated as an external classical point charge.
+ Its charge will be given by columns 61-65.</li>
+ <li> columns 31-54: The Cartesian coordinates. The Fortran format is <tt>(3f8.3)</tt>.</li>
+ <li> columns 61-65: Classical charge of the atom. The Fortran format is <tt>(f6.2)</tt>.</li>
+ </ul>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='ReducedCoordinates'></a>ReducedCoordinates</b>
+<br/><i>Section</i>: System::Coordinates
+<br/><i>Type</i>: block
+<br/><br> This block gives the atomic coordinates relative to the real
+ space unit cell. The format is the same as the
+ <tt>Coordinates</tt> block.
+<br><br>
+ Note that in Octopus the origin of coordinates is in the center
+ of the cell, so the coordinates inside the cell are in the
+ range [-0.5, 0.5).
+<br><br>
+ This block cannot be used with the <tt>minimum</tt> box shapes.
+<br><br>
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='XYZCoordinates'></a>XYZCoordinates</b>
+<br/><i>Section</i>: System::Coordinates
+<br/><i>Type</i>: string
+<br/><br> If <tt>PDBCoordinates</tt> is not present, the program reads the atomic coordinates from
+ the XYZ file specified by the variable <tt>XYZCoordinates</tt> -- in case this variable
+ is present. The XYZ format is very simple: The first line of the file has an integer
+ indicating the number of atoms. The second can contain comments that are simply ignored by
+ <tt>Octopus</tt>. Then there follows one line per atom, containing the chemical species and
+ the Cartesian coordinates of the atom.
+
+</p><hr width='30%' align='left'/>
+
+<a name='System::Species'</a>
+<H2>System::Species</H2>
+
+
+<p><b><a name='IonicInteraction'></a>IonicInteraction</b>
+<br/><i>Section</i>: System::Species
+<br/><i>Type</i>: block
+<br/><br> This block defines the type of classical interaction between
+ ions. Each line represents the interaction between two types of
+ species. The first two columns contain the element symbols, the
+ next column is the type of interaction as defined below. The
+ next columns are the parameters for the interaction (if
+ any). Pairs not specified interact through Coulomb`s law.
+<br><br>
+ Note: In most cases there is no need to specify this block,
+ since Coulomb interaction will be used by default.
+<br><br>
+
+<br/><i>Options</i>:
+<ul>
+<li><b>coulomb</b>:  Particles interact according to Coulomb`s law. The interaction
+ strength is given by the charge of the species. There are no
+ parameters.
+</li>
+<li><b>lennard_jones</b>:  (Experimental) The Lennard-Jones 12-6 model potential. It has
+ the form <math>V(r) = 4\epsilon((\sigma/r)^12 -
+ (\sigma/r)^6)</math>.  The next 2 columns contain the
+ <math>\epsilon</math> and <math>\sigma</math> (given in the
+ corresponding input file units).
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='Species'></a>Species</b>
+<br/><i>Section</i>: System::Species
+<br/><i>Type</i>: block
+<br/><br> A species is by definition either an "ion" (nucleus + core electrons) described
+ through a pseudopotential, or a user-defined model potential.
+<br><br>
+ Note that some common pseudopotentials are distributed with the code in the
+ directory <tt>OCTOPUS-HOME/share/PP/</tt>. To use these pseudopotentials you are
+ not required to define them explicitly in the <tt>Species</tt> block, as defaults
+ are provided by the program (you can override these defaults in any case).
+ Additional pseudopotentials can be downloaded from the
+ <a href='http://www.tddft.org/programs/octopus/wiki/index.php/Pseudopotentials'>
+ octopus homepage</a>.
+<br><br>
+ The format of this block is the following: The first field is
+ the name of the species, followed by the atomic mass (in atomic mass
+ units). The third field defines the type of species (the valid options
+ are detailed below). Each type also needs some parameters given in
+ the remaining fields of the row.
+<br><br>
+ In 3D, <i>e.g.</i>
+<br><br>
+ <tt>%Species
+ <br>&nbsp;&nbsp;'O'       | 15.9994 | spec_ps_psf         | 8   | 1 | 1
+ <br>&nbsp;&nbsp;'H'       |  1.0079 | spec_ps_hgh         | 1   | 0 | 0
+ <br>&nbsp;&nbsp;'jlm'     | 23.2    | spec_jelli          | 8   | 5.0
+ <br>&nbsp;&nbsp;'rho'     | 17.0    | spec_charge_density | 6   | "exp(-r/a)"
+ <br>&nbsp;&nbsp;'pnt'     | 32.3    | spec_point          | 2.0
+ <br>&nbsp;&nbsp;'udf'     |  0.0    | spec_user_defined   | 8   | "1/2*r^2"
+ <br>&nbsp;&nbsp;'H_all'   |  1.0079 | spec_full_delta     | 1
+ <br>&nbsp;&nbsp;'H_all'   |  1.0079 | spec_full_gaussian  | 1
+ <br>%</tt>
+<br><br>
+ Additionally, all the pseudopotential types (PSF, HGH, FHI, UPF) can take two extra
+ fields: default spacing, and default radius (used for minimum simulation box if the
+ radius is not specified).
+
+<br/><i>Options</i>:
+<ul>
+<li><b>spec_ps_psf</b>:  Troullier Martins pseudopotential in <tt>SIESTA</tt> format: the pseudopotential will be
+ read from a <tt>.psf</tt> file, either in the working
+ directory or in the <tt>OCTOPUS-HOME/share/octopus/PP/PSF</tt> directory.
+ Columns 4, 5, 6 are the atomic number, the maximum
+ <i>l</i>-component of the pseudopotential to consider in the
+ calculation, and the <i>l</i>-component to consider as local.
+</li>
+<li><b>spec_ps_hgh</b>:  Hartwigsen-Goedecker-Hutter pseudopotentials: column 4 is
+ the atomic number and columns 5 and 6 are irrelevant, since they
+ are not necessary to define the HGH pseudopotential.
+</li>
+<li><b>spec_ps_cpi</b>:  Fritz-Haber pseudopotential: the pseudopotential will be
+ read from a <tt>.cpi</tt> file, either in the working
+ directory or in the <tt>OCTOPUS-HOME/share/PP/CPI</tt> directory.
+ Columns 4, 5, 6 are the atomic number, the maximum
+ <i>l</i>-component of the pseudopotential to consider in the
+ calculation, and the <i>l</i>-component to consider as local.
+</li>
+<li><b>spec_ps_fhi</b>:  Fritz-Haber pseudopotential (<tt>ABINIT</tt> format): the pseudopotential will be
+ read from a <tt>.fhi</tt> file, either in the working
+ directory or in the <tt>OCTOPUS-HOME/share/PP/FHI</tt> directory.
+ Columns 4, 5, 6 are the atomic number, the maximum
+ <i>l</i>-component of the pseudopotential to consider in the
+ calculation, and the <i>l</i>-component to consider as local.
+ Note that you can use the pseudopotentials from <tt>ABINIT</tt> homepage.
+</li>
+<li><b>spec_ps_upf</b>:  UPF format: the pseudopotential will be
+ read from a <tt>.UPF</tt> file, either in the working
+ directory or in the <tt>OCTOPUS-HOME/share/PP/UPF</tt> directory.
+ Column 4 is the atomic number. Columns 5 and 6 are
+ ignored, as the maximum <i>l</i>-component of the pseudopotential to
+ consider in the calculation and the <i>l</i>-component to consider as
+ local are indicated in the pseudopotential file are cannot be changed.
+</li>
+<li><b>spec_user_defined</b>:  Species with user-defined potential. In this case, the fourth
+ field is the valence charge and the fifth
+ field is a string with a mathematical expression that defines the
+ potential (you can use any of the <i>x</i>, <i>y</i>, <i>z</i>
+ or <i>r</i> variables).
+</li>
+<li><b>spec_full_gaussian</b>:  A full-potential atom is defined by a Gaussian accumulation of
+ positive charge (distorted if curvilinear coordinates are
+ used), in the form:
+<br><br>
+ <math>
+ q(r) = z * \beta * exp[ - (\vec{r}-\vec{r0})**2 / (sqrt(2) * \delta * \sigma) ]
+ </math>
+<br><br>
+ <math>\beta</math> is chosen in order to maintain proper
+ normalization (the integral of <math>q</math> should sum up to
+ <math>z</math>). <math>\delta</math> is the grid spacing (the
+ grid spacing in the first dimension, to be precise).
+ <math>\vec{r0}</math> is calculated in such a way that the the
+ first moment of <math>q(r)/z</math> is equal to the atomic
+ position. For a precise description, see N. A. Modine,
+ <i>Phys. Rev. B</i> <b>55</b>, 10289 (1997).
+<br><br>
+ Column 4 is the atomic number and column 5 is
+ <math>sigma</math>, the width of the gaussian that should be
+ small, but you may run into numerical difficulties if it is too
+ small (0.25 by default).
+</li>
+<li><b>spec_charge_density</b>:  The potential is created by a distribution of charge. The extra parameters are the
+ valence charge of the species, and an expression for the charge distribution.
+</li>
+<li><b>species_from_file</b>:  The potential is read from a file, whose name is given in column 5.
+</li>
+<li><b>spec_full_delta</b>:  Full atomic potential represented by a delta charge
+ distribution. The atom will be displaced to the nearest grid
+ point. Column 4 is the atomic number.
+</li>
+<li><b>spec_point</b>:  Point charge: the fourth field is the value of the charge.
+</li>
+<li><b>spec_jelli</b>:  Jellium sphere: the extra parameters are the charge of the jellium
+ sphere (an equal value of valence charge is assumed) and the radius of
+ the sphere.
+</li>
+<li><b>spec_jelli_slab</b>:  Jellium slab: the extra parameters are the charge of the jellium
+ slab (an equal value of valence charge is assumed) and the thickness of
+ the slab. The slab extends across the simulation box in the <i>xy</i>-plane.
+</li>
+</ul>
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='SpeciesProjectorSphereThreshold'></a>SpeciesProjectorSphereThreshold</b>
+<br/><i>Section</i>: System::Species
+<br/><i>Type</i>: float
+<br/><i>Default</i>: 0.001
+<br/><br> The pseudopotentials may be composed of a local part, and a linear combination of nonlocal
+ operators. These nonlocal projectors have "projector" form, |<i>v</i>&gt;&lt;<i>v</i>| (or, more generally
+ speaking, |<i>u</i>&gt;&lt;<i>v</i>|). These projectors are localized in real space -- that is, the function <i>v</i>
+ has a finite support around the nucleus. This region where the projectors are localized should
+ be small or else the computation time required to operate with them will be very large.
+<br><br>
+ In practice, this localization is fixed by requiring the definition of the projectors to be
+ contained in a sphere of a certain radius. This radius is computed by making sure that the
+ absolute value of the projector functions, at points outside the localization sphere, is
+ below a certain threshold. This threshold is set by <tt>SpeciesProjectorSphereThreshold</tt>.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='SpeciesTimeDependent'></a>SpeciesTimeDependent</b>
+<br/><i>Section</i>: System::Species
+<br/><i>Type</i>: logical
+<br/><i>Default</i>: no
+<br/><br> When this variable is set, the potential defined in the block <tt>Species</tt> is calculated
+ and applied to the Hamiltonian at each time step. You must have at least one <tt>spec_user_defined</tt>
+ type of species to use this.
+
+</p><hr width='30%' align='left'/>
+
+<a name='System::Velocities'</a>
+<H2>System::Velocities</H2>
+
+
+<p><b><a name='RandomVelocityTemp'></a>RandomVelocityTemp</b>
+<br/><i>Section</i>: System::Velocities
+<br/><i>Type</i>: float
+<br/><br> If this variable is present, <tt>Octopus</tt> will assign random
+ velocities to the atoms following a Boltzmann distribution with
+ temperature given by <tt>RandomVelocityTemp</tt> (in degrees Kelvin).
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='Velocities'></a>Velocities</b>
+<br/><i>Section</i>: System::Velocities
+<br/><i>Type</i>: block
+<br/><br> If <tt>XYZVelocities</tt> is not present, octopus will try to fetch the initial
+ atomic velocities from this block. If this block is not present, octopus
+ will reset the initial velocities to zero. The format of this block can be
+ illustrated by this example:
+<br><br>
+ <tt>%Velocities
+ <br>&nbsp;&nbsp;'C'  |      -1.7 | 0.0 | 0.0
+ <br>&nbsp;&nbsp;'O'  | &nbsp;1.7 | 0.0 | 0.0
+ <br>%</tt>
+<br><br>
+ It describes one carbon and one oxygen moving at the relative
+ velocity of 3.4 velocity units.
+<br><br>
+ Note: It is important for the velocities to maintain the ordering
+ in which the species were defined in the coordinates specifications.
+
+</p><hr width='30%' align='left'/>
+
+
+<p><b><a name='XYZVelocities'></a>XYZVelocities</b>
+<br/><i>Section</i>: System::Velocities
+<br/><i>Type</i>: string
+<br/><br> <tt>Octopus</tt> will try to read the starting velocities of the atoms from the XYZ file
+ specified by the variable <tt>XYZVelocities</tt>.
+ Note that you do not need to specify initial velocities if you are not going
+ to perform ion dynamics; if you are going to allow the ions to move but the velocities
+ are not specified, they are considered to be null.
+
+</p><hr width='30%' align='left'/>
+
+</body>
+</html>
