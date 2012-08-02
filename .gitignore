@@ -17,7 +17,7 @@ Makefile.in
 !doc/html/icons/Makefile.in
 .gitignore.swp
 *.a
-*.f90
+#*.f90
 config.*
 configure
 src/utils/oct*
