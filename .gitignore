@@ -17,7 +17,7 @@ Makefile.in
 .gitignore.swp
 *.a
 #*.f90
-#config.*
+config.*
 configure
 #src/utils/oct*
 #src/main/oct*
