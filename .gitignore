@@ -1,7 +1,7 @@
 an ignore specific files
 .DS_Store
 script
-testsuite/oct-run_testsuite
+#testsuite/oct-run_testsuite
 stamp-h1
 build/octopus.spec
 aclocal.m4
@@ -10,8 +10,12 @@ aclocal.m4
 *.o
 *.svn
 *.mod
+*.am
 Makefile
 Makefile.in
+!doc/htmp/icons
+!doc/html/icons/Makefile.in
+.gitignore.swp
 *.a
 *.f90
 config.*
