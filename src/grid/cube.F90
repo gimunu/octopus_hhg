@@ -208,29 +208,31 @@ contains
 
   ! ---------------------------------------------------------
   !> Initialize the cube FS coordinate map cube%k(:,:) for the employed fft_libary
-  subroutine cube_init_fs_coords(cube, dx)
+  subroutine cube_init_fs_coords(cube, dx, dim)
     type(cube_t), intent(inout) :: cube
     FLOAT                       :: dx(1:3)
+    integer                     :: dim
     
     integer :: ii,nn, fsn_max, dir
-    FLOAT   :: dk(1:3)    
+    FLOAT   :: dk(1:dim)    
     
     PUSH_SUB(cube_init_fs_coords)
     
-    fsn_max = maxval(cube%fs_n(1:3))    
+    fsn_max = maxval(cube%fs_n(1:dim)) 
     SAFE_ALLOCATE(cube%k(1:fsn_max,1:3))
+    cube%k = M_ZERO
     
-    dk(1:3) = M_TWO * M_PI / (cube%fs_n_global(1) * dx(1:3))
-    nn = cube%fs_n_global(1)
+    dk(1:dim) = M_TWO * M_PI / (cube%rs_n_global(1:dim) * dx(1:dim))
+!     nn = cube%rs_n_global(1)
 
-    do dir = 1, 3      
+    do dir = 1, dim      
       do ii = cube%fs_istart(dir), cube%fs_n(dir)
         
         if (cube%fft%library .eq.  FFTLIB_NFFT) then
           !The Fourier space is shrunk by the RS enlargment factor
 !           cube%k(ii, dir) = (ii - nn/2 - 1) * dk(dir) / (M_TWO**enlarge_nfft)
         else
-          cube%k(ii, dir) = pad_feq(ii, nn, .true.) * dk(dir)
+          cube%k(ii, dir) = pad_feq(ii, cube%rs_n_global(dir), .true.) * dk(dir)
         end if
               
       end do      
