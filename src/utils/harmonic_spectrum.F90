@@ -23,6 +23,7 @@ program harmonic_spectrum
   use command_line_m
   use datasets_m
   use fft_m
+  use harmonic_spect_m
   use global_m
   use io_m
   use messages_m
@@ -42,7 +43,8 @@ program harmonic_spectrum
 
   integer, parameter :: &
     HS_FROM_MULT = 1,   &
-    HS_FROM_ACC  = 2
+    HS_FROM_ACC  = 2,   & 
+    HS_FROM_J    = 3
 
   call getopt_init(ierr)
   if(ierr.ne.0) then
@@ -118,6 +120,19 @@ program harmonic_spectrum
        call spectrum_hs_from_acc('hs-acc', spectrum, pol, vec)
       end if
     end if
+  case(HS_FROM_J)
+    if(get_maxima) then
+!       call spectrum_hs_from_acc('hs-acc-maxima', spectrum, pol, vec, w0)
+    else
+      if(ar .eq. 1) then
+         message(1)= "Calculating angle-resolved hs from current-density."
+        call messages_info(1)
+!         call spectrum_hs_ar_from_acc('hs-acc', spectrum, vec)
+      else
+!        call spectrum_hs_from_acc('hs-acc', spectrum, pol, vec)
+      end if
+    end if
+    
   end select
 
 
