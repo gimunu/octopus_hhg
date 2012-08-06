@@ -408,7 +408,7 @@ contains
 	!Photoelectron output and restart dump
         call PES_output(td%PESv, gr%mesh, st, iter, sys%outp, td%dt,gr,geo)
         call PES_restart_write(td%PESv, gr%mesh, st)
-        if(td%harms%calc) call harmonic_spect_out(td%harms, sys%outp)
+        call harmonic_spect_checkpoint(td%harms)
         if( (ion_dynamics_ions_move(td%ions)) .and. td%recalculate_gs) then
           call messages_print_stress(stdout, 'Recalculating the ground state.')
           fromScratch = .false.

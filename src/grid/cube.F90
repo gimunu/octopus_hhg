@@ -40,7 +40,8 @@ module cube_m
     cube_init,          &
     cube_partition,     &
     cube_global2local,  &
-    cube_end
+    cube_end,           &
+    cube_init_fs_coords
 
   type cube_t
     logical :: parallel_in_domains !< will the cube be divided in domains?
@@ -57,6 +58,9 @@ module cube_m
     integer, pointer :: np_local(:) !< Number of points in each partition
     integer, pointer :: xlocal(:)   !< where does each process start when gathering a function
     integer, pointer :: local(:,:)  !< local to global map used when gathering a function
+
+    FLOAT, pointer :: x(:,:)            !< The (local) points in real space 
+    FLOAT, pointer :: k(:,:)            !< The (local) points in fourier space
 
     type(fft_t), pointer :: fft !< the fft object
   end type cube_t
@@ -192,6 +196,7 @@ contains
     if(associated(cube%fft)) then
       call fft_end(cube%fft)
       SAFE_DEALLOCATE_P(cube%fft)
+      SAFE_DEALLOCATE_P(cube%k)
     end if
 
     SAFE_DEALLOCATE_P(cube%np_local)
@@ -200,6 +205,39 @@ contains
 
     POP_SUB(cube_end)
   end subroutine cube_end
+
+  ! ---------------------------------------------------------
+  !> Initialize the cube FS coordinate map cube%k(:,:) for the employed fft_libary
+  subroutine cube_init_fs_coords(cube, dx)
+    type(cube_t), intent(inout) :: cube
+    FLOAT                       :: dx(1:3)
+    
+    integer :: ii,nn, fsn_max, dir
+    FLOAT   :: dk(1:3)    
+    
+    PUSH_SUB(cube_init_fs_coords)
+    
+    fsn_max = maxval(cube%fs_n(1:3))    
+    SAFE_ALLOCATE(cube%k(1:fsn_max,1:3))
+    
+    dk(1:3) = M_TWO * M_PI / (cube%fs_n_global(1) * dx(1:3))
+    nn = cube%fs_n_global(1)
+
+    do dir = 1, 3      
+      do ii = cube%fs_istart(dir), cube%fs_n(dir)
+        
+        if (cube%fft%library .eq.  FFTLIB_NFFT) then
+          !The Fourier space is shrunk by the RS enlargment factor
+!           cube%k(ii, dir) = (ii - nn/2 - 1) * dk(dir) / (M_TWO**enlarge_nfft)
+        else
+          cube%k(ii, dir) = pad_feq(ii, nn, .true.) * dk(dir)
+        end if
+              
+      end do      
+    end do    
+    
+    POP_SUB(cube_init_fs_coords)
+  end subroutine cube_init_fs_coords
 
   ! ---------------------------------------------------------
   !> True if global coordinates belong to this process. On output
