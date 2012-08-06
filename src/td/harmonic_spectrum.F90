@@ -34,6 +34,7 @@ module harmonic_spect_m
   use index_m
   use io_function_m
   use io_m
+  use io_binary_m
   use math_m
   use mesh_m
   use mesh_cube_parallel_map_m
@@ -43,6 +44,7 @@ module harmonic_spect_m
   use output_m
   use parser_m
   use profiling_m
+  use qshepmod_m
   use restart_m
   use simul_box_m
   use states_io_m
@@ -61,7 +63,8 @@ module harmonic_spect_m
     harmonic_spect_init,           &
     harmonic_spect_end,            &
     harmonic_spect_calc,           &
-    harmonic_spect_checkpoint
+    harmonic_spect_checkpoint,     &
+    harmonic_spect_restart_read
 
   type harmonic_spect_t !< Angular-resolved Harmonic Spectrum structure
     
@@ -74,16 +77,7 @@ module harmonic_spect_m
     type(mesh_cube_parallel_map_t) :: mesh_cube_map  !< The parallel map
     
     type(cube_function_t) :: Jkint(3) !< Time integrated FS density current
-    
-    integer        :: nw
-    integer        :: nt 
-    integer        :: np
-
-
-    FLOAT          :: omega(1:3)            !< omega: 1 - min, 2 - max, 3 - delta 
-    FLOAT          :: theta(1:3)            !< theta: 1 - min, 2 - max, 3 - delta 
-    FLOAT          :: phi(1:3)              !< phi: 1 - min, 2 - max, 3 - delta 
-    
+        
     FLOAT          :: dt
     integer        :: what                  !< what do we want to calculate
     
@@ -109,7 +103,7 @@ contains
   end subroutine harmonic_spect_nullify
 
   ! ---------------------------------------------------------
-  subroutine harmonic_spect_init(this, gr, dt )
+  subroutine harmonic_spect_init(this, gr, dt)
     type(harmonic_spect_t), intent(out) :: this
     type(grid_t), target,   intent(in)    :: gr
     FLOAT,                  intent(in)    :: dt
@@ -256,7 +250,7 @@ contains
       !ALLOCATION 
 
       call cube_init(this%cube, box, this%mesh%sb, fft_type = FFT_REAL, verbose = .true.)
-      call cube_init_fs_coords(this%cube, this%mesh%spacing(1:3))
+      call cube_init_fs_coords(this%cube, this%mesh%spacing(1:3), this%mesh%sb%dim)
       if ( this%mesh%parallel_in_domains .and. this%cube%parallel_in_domains) then
         call mesh_cube_parallel_map_init(this%mesh_cube_map, this%mesh, this%cube)
       end if      
@@ -375,7 +369,7 @@ contains
             KK(3) = this%cube%k(iz,3)
             
             K = sqrt(KK(1)**2 + KK(2)**2 + KK(3)**2)
-            cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) * exp(M_zI * this%dt * K * P_C)
+            cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) *  this%dt * exp(M_zI * this%dt * K * P_C)
             
           end do
         end do
@@ -388,7 +382,7 @@ contains
 
   ! ---------------------------------------------------------
   subroutine harmonic_spect_checkpoint(this)
-    type(harmonic_spect_t), intent(out) :: this
+    type(harmonic_spect_t), intent(in) :: this
     
     PUSH_SUB(harmonic_spect_checkpoint)
     
@@ -401,17 +395,71 @@ contains
   end subroutine harmonic_spect_checkpoint
 
   ! ---------------------------------------------------------
-  subroutine harmonic_spect_out(this)
-    type(harmonic_spect_t),      intent(inout) :: this
+  ! g(k) = |n x (n x J(k))|^2
+  ! ---------------------------------------------------------
+  subroutine harmonic_spect_gk(this, gk)
+    type(harmonic_spect_t), intent(in) :: this
+    FLOAT,                  intent(out):: gk(:,:,:)
 
+    integer :: ix,iy,iz
+    FLOAT :: KK(3), K, N(3)
+    
+    PUSH_SUB(harmonic_spect_gk)
+
+    gk(:,:,:) = M_ZERO
+          
+    do ix = 1, this%cube%fs_n(1)
+      KK(1) = this%cube%k(ix,1)
+      do iy = 1, this%cube%fs_n(2)
+        KK(2) = this%cube%k(iy,2)
+        do iz = 1, this%cube%fs_n(3)
+          KK(3) = this%cube%k(iz,3)
+            
+          K = sqrt(KK(1)**2 + KK(2)**2 + KK(3)**2)
+          N(:) = KK(:)/K
+          
+          gk(ix, iy, iz) = abs(this%Jkint(1)%FS(ix, iy, iz))**2 &
+                         + abs(this%Jkint(2)%FS(ix, iy, iz))**2 &
+                         + abs(this%Jkint(3)%FS(ix, iy, iz))**2
+            
+          gk(ix, iy, iz) = gk(ix, iy, iz) &
+                         - abs(N(1) * this%Jkint(1)%FS(ix, iy, iz))**2 &
+                         - abs(N(2) * this%Jkint(2)%FS(ix, iy, iz))**2 &
+                         - abs(N(3) * this%Jkint(3)%FS(ix, iy, iz))**2 
+            
+          gk(ix, iy, iz) = gk(ix, iy, iz) * K**2 
+            
+        end do
+      end do
+    end do
+    
+    gk = gk/ (CNST(4.0) * M_PI**2 * P_C)
+    
+
+    POP_SUB(harmonic_spect_gk)  
+  end subroutine harmonic_spect_gk  
+
+  ! ---------------------------------------------------------
+  subroutine harmonic_spect_out(this)
+    type(harmonic_spect_t),      intent(in) :: this
+
+    
+    FLOAT, allocatable :: gk(:,:,:)
+    integer :: ix,iy,iz
+    FLOAT :: KK(3), K, N(3)
+    
+    
     PUSH_SUB(harmonic_spect_out)
 
     ASSERT(this%calc)
     
+    SAFE_ALLOCATE(gk(1:this%cube%fs_n(1),1:this%cube%fs_n(2),1:this%cube%fs_n(3)))
     
+    call harmonic_spect_gk(this, gk)
     
-
-
+    call harmonic_spect_total(this,"td.general/harmonic_spect.tot", gk)
+    
+    SAFE_DEALLOCATE_A(gk)
 
     POP_SUB(harmonic_spect_out)
   end subroutine harmonic_spect_out
@@ -420,9 +468,28 @@ contains
   subroutine harmonic_spect_restart_write(this)
     type(harmonic_spect_t),    intent(in) :: this
 
+    character(len=256) :: filename, path, number
+    integer :: dir, ierr, npoints
+    
     PUSH_SUB(harmonic_spect_restart_write)
 
     ASSERT(this%calc)
+    
+    path = trim(restart_dir)//'td/'
+    
+    npoints = this%cube%fs_n(1)*this%cube%fs_n(2)*this%cube%fs_n(3)
+    
+    do dir = 1, 3
+      write(number,'(i1.1)') dir
+      filename = trim(path)//'hs_spect.'//number
+      call io_binary_write(filename, npoints, this%Jkint(dir)%FS(:,:,:), ierr)    
+
+      if(ierr > 0) then
+        message(1) = "Failed to write file "//trim(filename)
+        call messages_fatal(1)
+      end if
+      
+    end do
 
 
     POP_SUB(harmonic_spect_restart_write)
@@ -432,10 +499,29 @@ contains
   subroutine harmonic_spect_restart_read(this)
     type(harmonic_spect_t),    intent(inout) :: this
 
+    character(len=256) :: filename, path, number
+    integer :: dir, ierr, npoints
+
     PUSH_SUB(harmonic_spect_restart_read)
 
     ASSERT(this%calc)
  
+    path = trim(restart_dir)//'td/'
+    
+    npoints = this%cube%fs_n(1)*this%cube%fs_n(2)*this%cube%fs_n(3)
+    
+    do dir = 1, 3
+      write(number,'(i1.1)') dir
+      filename = trim(path)//'hs_spect.'//number      
+      call io_binary_read(filename, npoints, this%Jkint(dir)%FS(:,:,:), ierr)    
+
+      if(ierr > 0) then
+        message(1) = "Failed to write file "//trim(filename)
+        call messages_fatal(1)
+      end if
+      
+    end do
+
 
     POP_SUB(harmonic_spect_restart_read)
   end subroutine harmonic_spect_restart_read
@@ -454,6 +540,185 @@ contains
 
     POP_SUB(harmonic_spect_init_write)
   end subroutine harmonic_spect_init_write
+
+  ! ---------------------------------------------------------
+  subroutine harmonic_spect_total(this, file, gk, interpolate)
+    type(harmonic_spect_t), intent(in) :: this
+    character(len=*),       intent(in) :: file
+    FLOAT,                  intent(in) :: gk(:,:,:)
+    logical, optional,      intent(in) :: interpolate
+
+    integer :: ist, ik, ii, ix, iy, iz, iunit,idim
+    FLOAT ::  KK(3),vec
+
+    integer :: nn
+    FLOAT  :: step, DE
+    FLOAT, allocatable :: npoints(:), out(:)
+
+    ! needed for interpolation in 2D and 3D 
+    FLOAT, pointer :: cube_f(:)
+    type(qshep_t) :: interp
+
+    FLOAT :: Dtheta, Dphi, theta, phi,EE , Emax, Edir(3)
+    integer :: np, Ntheta, Nphi, ith, iph
+    integer :: ll(3), dim
+
+
+
+
+    PUSH_SUB(harmonic_spect_total)
+
+
+    ll = 1
+    step = M_ZERO
+    dim = this%mesh%sb%dim
+    do ii = 1, dim
+      ll(ii) = size(gk,ii) 
+      step= step + abs(this%cube%k(2, ii) - this%cube%k(1, ii))**2 
+      Edir(ii) = maxval(abs(this%cube%k(1:this%cube%fs_n(ii), ii)))**2/M_TWO
+    end do
+    step = step /M_TWO
+    
+    
+    Emax = maxval(Edir(1:dim))
+
+!     print *,"Emax", Emax, "DE", step
+
+    nn  = int(Emax/step)
+
+
+    Ntheta = 360
+    Dtheta = M_TWO*M_PI/Ntheta
+
+    Nphi = 180
+    Dphi = M_PI/Nphi
+
+    SAFE_ALLOCATE(out(1:nn))
+    out = M_ZERO
+
+    SAFE_ALLOCATE(npoints(1:nn))
+    npoints = M_ZERO
+
+    !in 1D we do not interpolate 
+    if ( (.not. optional_default(interpolate, .false.))  ) then 
+
+      do ix = 1,ll(1)
+        KK(1) = this%cube%k(ix,1)
+        do iy = 1, ll(2)
+          KK(2) = this%cube%k(iy,2)
+          do iz = 1, ll(3)
+            KK(3) = this%cube%k(iz,3)
+
+            if(KK(1).ne.0 .or. KK(2).ne.0 .or. KK(3).ne.0) then
+              ! the power spectrum
+              vec = sum(KK(1:dim)**2) / M_TWO
+              ii = int(vec / step) + 1
+
+              if(ii <= nn) then
+
+                out(ii) = out(ii) + gk(ix,iy,iz)
+                npoints(ii) = npoints(ii) + M_ONE
+
+              end if
+            end if
+
+          end do
+        end do
+      end do
+      
+      
+
+    end if
+      ! Interpolate the output
+ !    else
+ 
+!       call PES_mask_interpolator_init(PESK, Lk, dim, cube_f, interp)
+! 
+!       select case(dim)
+!       case(2)
+! 
+!         do ii = 1, nn
+!           EE = (ii-1)*step
+!           do ith = 0, Ntheta
+!             theta = ith*Dtheta
+!             KK(1) = sqrt(2*EE)*cos(theta) 
+!             KK(2) = sqrt(2*EE)*sin(theta)
+!             out(ii) = out(ii) + qshep_interpolate(interp, cube_f, KK(1:2))
+!           end do
+!         end do
+! 
+!         out = out * Dtheta
+! 
+!       case(3)
+! 
+!         do ii = 1, nn
+!           EE = (ii-1)*step
+!           do ith = 0, Ntheta
+!             theta = ith * Dtheta
+!             do iph = 0, Nphi
+!               phi = iph * Dphi
+! 
+!               KK(2) = sqrt(M_TWO*EE)*sin(phi)*cos(theta) 
+!               KK(3) = sqrt(M_TWO*EE)*sin(phi)*sin(theta)
+!               KK(1) = sqrt(M_TWO*EE)*cos(phi)
+! 
+!               out(ii) = out(ii) + qshep_interpolate(interp, cube_f, KK(1:3))
+!             end do
+!           end do
+!           out(ii) = out(ii) * sqrt(M_TWO*EE)    
+!         end do
+! 
+!         out = out * Dtheta * Dphi
+! 
+!       end select
+! 
+!       call PES_mask_interpolator_end(cube_f, interp)
+! 
+!     end if
+
+
+!     if (interpolate) then 
+!       call PES_mask_write_power_total(file, step, out)
+!     else 
+!       call PES_mask_write_power_total(file, step, out, npoints)
+!     end if
+
+
+    iunit = io_open(file, action='write')
+
+    !!Header
+    write(iunit, '(a)') '##################################################'
+    write(iunit, '(a1,a18,a18)') '#', str_center("E", 18), str_center("S(E)", 18)
+    write(iunit, '(a1,a18,a18)') &
+      '#', str_center('['//trim(units_abbrev(units_out%energy)) // ']', 18), &
+      str_center('[1/' //trim(units_abbrev(units_out%energy))//']', 18)
+    write(iunit, '(a)') '##################################################'
+ 
+
+    do ii = 1, nn
+!       if(present(npoints)) then
+
+        if(npoints(ii) > 0) then
+          write(iunit, '(es19.12,2x,es19.12,2x,es19.12)')  units_from_atomic(units_out%energy, (ii - 1) * step), out(ii), npoints(ii)
+        end if
+
+!       else
+!         write(iunit, '(es19.12,2x,es19.12)')  units_from_atomic(units_out%energy, (ii - 1) * step), pes(ii)
+!       end if
+    end do
+  
+    call io_close(iunit)
+
+
+
+    SAFE_DEALLOCATE_A(out)
+    SAFE_DEALLOCATE_A(npoints)
+
+    POP_SUB(harmonic_spect_total)
+
+
+  end subroutine harmonic_spect_total
+
 
 
 end module harmonic_spect_m
