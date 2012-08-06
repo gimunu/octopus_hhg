@@ -122,14 +122,14 @@ program harmonic_spectrum
     end if
   case(HS_FROM_J)
     if(get_maxima) then
-!       call spectrum_hs_from_acc('hs-acc-maxima', spectrum, pol, vec, w0)
+!       call spectrum_hs_from_j('hs-acc-maxima', spectrum, pol, vec, w0)
     else
       if(ar .eq. 1) then
          message(1)= "Calculating angle-resolved hs from current-density."
         call messages_info(1)
-!         call spectrum_hs_ar_from_acc('hs-acc', spectrum, vec)
+!         call spectrum_hs_ar_from_j('hs-acc', spectrum, vec)
       else
-!        call spectrum_hs_from_acc('hs-acc', spectrum, pol, vec)
+!        call spectrum_hs_from_j('hs-acc', spectrum, pol, vec)
       end if
     end if
     
@@ -141,6 +141,21 @@ program harmonic_spectrum
   call messages_end()
   call parser_end()
   call global_end()
+  
+  contains
+  
+  subroutine spectrum_hs_ar_from_j(prefix, pol, vec)
+    character(len=256), intent(in) :: prefix 
+    character(len=1),   intent(in) :: pol 
+    FLOAT,              intent(in) :: vec(3)
+    
+    type(harmonic_spect_t) :: harm
+    
+    
+    
+    
+  end subroutine spectrum_hs_ar_from_j
+  
 end program harmonic_spectrum
 
 !! Local Variables:
