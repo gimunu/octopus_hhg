@@ -344,7 +344,7 @@ contains
   	call  cube_function_alloc_FS(this%cube, cfJ)   
 
     SAFE_ALLOCATE(J(1:this%mesh%np, 1:3))
-    
+
     SAFE_ALLOCATE(Js(1:this%mesh%np, 1:3, 1:st%d%nspin))      
     call states_calc_quantities(this%gr%der, st, paramagnetic_current = Js )
     J(:,:) = sum(Js(:,:,1:st%d%nspin)) ! sum up all the spin channels
@@ -366,7 +366,7 @@ contains
    
 
 
-    call dcube_function_free_RS(this%cube, cfJ)
+    call zcube_function_free_RS(this%cube, cfJ)
     call  cube_function_free_FS(this%cube, cfJ)
     SAFE_DEALLOCATE_A(J)
     
@@ -390,7 +390,7 @@ contains
             KK(3) = this%cube%k(iz,3)
             
             K = sqrt(KK(1)**2 + KK(2)**2 + KK(3)**2)
-            cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) * exp(M_zI * t * K * P_C)
+            cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) * exp( M_zI * t * K * P_C)
             
           end do
         end do
@@ -401,13 +401,18 @@ contains
     
   end subroutine harmonic_spect_calc
 
+
+  !***********************************************************
+  ! OUTPUT ROUTINES
+  !***********************************************************
+
   ! ---------------------------------------------------------
   subroutine harmonic_spect_checkpoint(this)
     type(harmonic_spect_t), intent(in) :: this
     
     PUSH_SUB(harmonic_spect_checkpoint)
     
-    if(this%calc) then
+    if(this%calc .and. mpi_grp_is_root(mpi_world)) then
       call harmonic_spect_restart_write(this)
       call harmonic_spect_out(this)
     end if
@@ -431,6 +436,7 @@ contains
 
     gk(:,:,:) = M_ZERO
           
+    
     do ix = 1, this%cube%fs_n(1)
       KK(1) = this%cube%k(ix,1)
       do iy = 1, this%cube%fs_n(2)
@@ -455,6 +461,8 @@ contains
         end do
       end do
     end do
+        
+   
     
     gk(:,:,:) = gk(:,:,:)/ (CNST(4.0) * M_PI**2 * P_C)
     
@@ -471,6 +479,57 @@ contains
   end subroutine harmonic_spect_gk  
 
   ! ---------------------------------------------------------
+  subroutine harmonic_spect_write_gk(this, gk)
+    type(harmonic_spect_t), intent(in) :: this
+    FLOAT,                  intent(in) :: gk(:,:,:)
+       
+    character(len=256) :: filename, path
+    integer :: ierr, npoints
+    
+    PUSH_SUB(harmonic_spect_write_gk)
+
+    path ='td.general/'
+    
+    npoints = this%cube%fs_n(1)*this%cube%fs_n(2)*this%cube%fs_n(3)
+    
+    filename = trim(path)//'harmonic_spect_gk.obf'
+    call io_binary_write(filename, npoints, gk(:,:,:), ierr)    
+
+    if(ierr > 0) then
+      message(1) = "Failed to write file "//trim(filename)
+      call messages_fatal(1)
+    end if
+    
+    
+    POP_SUB(harmonic_spect_write_gk)
+  end subroutine harmonic_spect_write_gk
+
+  ! ---------------------------------------------------------
+  subroutine harmonic_spect_read_gk(gk, npoints)
+    FLOAT,   intent(out) :: gk(:,:,:)
+    integer, intent(in) :: npoints
+       
+    character(len=256) :: filename, path
+    integer :: ierr
+    
+    PUSH_SUB(harmonic_spect_read_gk)
+
+    path ='td.general/'
+    
+    filename = trim(path)//'harmonic_spect_gk.obf'
+    call io_binary_read(filename, npoints, gk(:,:,:), ierr)    
+
+    if(ierr > 0) then
+      message(1) = "Failed to write file "//trim(filename)
+      call messages_fatal(1)
+    end if
+    
+    
+    POP_SUB(harmonic_spect_read_gk)
+  end subroutine harmonic_spect_read_gk
+
+
+  ! ---------------------------------------------------------
   subroutine harmonic_spect_out(this)
     type(harmonic_spect_t),      intent(in) :: this
 
@@ -484,7 +543,13 @@ contains
     
     SAFE_ALLOCATE(gk(1:this%cube%fs_n(1),1:this%cube%fs_n(2),1:this%cube%fs_n(3)))
     
-    call harmonic_spect_gk(this, gk)
+    if(this%mesh%sb%dim == 1) then
+      gk = abs(this%Jkint(1)%FS(:,:,:))**2
+    else
+      call harmonic_spect_gk(this, gk)
+    end if
+    
+    call harmonic_spect_write_gk(this, gk)
     
     call harmonic_spect_total(this,"td.general/harmonic_spect.tot", gk)
     
@@ -510,7 +575,7 @@ contains
     
     do dir = 1, 3
       write(number,'(i1.1)') dir
-      filename = trim(path)//'hs_spect.'//number
+      filename = trim(path)//'hs_j-'//trim(number)//'.obf'
       call io_binary_write(filename, npoints, this%Jkint(dir)%FS(:,:,:), ierr)    
 
       if(ierr > 0) then
@@ -541,7 +606,7 @@ contains
     
     do dir = 1, 3
       write(number,'(i1.1)') dir
-      filename = trim(path)//'hs_spect.'//number      
+      filename = trim(path)//'hs_j-'//trim(number)//'.obf'      
       call io_binary_read(filename, npoints, this%Jkint(dir)%FS(:,:,:), ierr)    
 
       if(ierr > 0) then
@@ -592,8 +657,6 @@ contains
     FLOAT :: Dtheta, Dphi, theta, phi,EE , Wmin, Wmax, Wdir(3)
     integer :: np, Ntheta, Nphi, ith, iph
     integer :: ll(3), dim
-
-
 
 
     PUSH_SUB(harmonic_spect_total)
