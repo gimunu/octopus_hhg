@@ -41,6 +41,7 @@ module harmonic_spect_m
   use mesh_function_m
   use messages_m
   use mpi_m
+  use nfft_m
   use output_m
   use parser_m
   use profiling_m
@@ -81,6 +82,8 @@ module harmonic_spect_m
     FLOAT          :: dt
     integer        :: what                  !< what do we want to calculate
     
+    type(fft_t)    :: fft
+    
   end type harmonic_spect_t
 
   integer, parameter ::     &
@@ -111,10 +114,16 @@ contains
 
     integer :: hs_flags
     character(len=256) :: lab, str
-    integer :: n_block, ib, ii
+    integer :: ii, dim, idim
     type(block_t) :: blk
-    FLOAT         :: memory 
+    FLOAT         :: memory, omegaMax, omegaMin, temp(3), WMax, Sfactor
     integer :: i, box(MAX_DIM)
+    logical :: use_nfft
+
+    !FOR NFFT
+    FLOAT, allocatable :: XX(:,:)
+    logical :: optimize(3)
+    integer :: optimize_parity(3)
 
     PUSH_SUB(harmonic_spect_init)
     
@@ -156,104 +165,121 @@ contains
       this%mesh => gr%mesh
       this%dt = dt
       box(:) = this%mesh%idx%ll(:)
+      dim = this%mesh%sb%dim
 
       write(str, '(a,i5)') 'Harmonic Spectrum'
       call messages_print_stress(stdout, trim(str))
      
     
-
-!       !%Variable HarmonicSpectrumGrid
-!       !%Type block
-!       !%Section Time-Dependent::HarmonicSpectrum
-!       !%Description
-!       !% Specify the grid that we want to use. 
-!       !% 
-!       !% <tt>%HarmonicSpectrumGrid 
-!       !% <br>&nbsp;&nbsp; 'omega' | min | max | spacing 
-!       !% <br>&nbsp;&nbsp; 'theta' | min | max | spacing  (radiants)
-!       !% <br>&nbsp;&nbsp; 'phi'   | min | max | spacing  (radiants)
-!       !% <br>%</tt>
-!       !%
-!       !%End
-!       if (parse_block(datasets_check('HarmonicSpectrumGrid'), blk) < 0)then
-!         call input_error('HarmonicSpectrumGrid')
-! 
-!       else 
-!         n_block = parse_block_n(blk)
-!       
-!         do ib = 1, n_block
-!           call parse_block_string(blk, ib-1, 0, lab)
-!           select case (lab)
-!             case ('omega')
-!               call parse_block_float(blk, ib-1, 1, this%omega(1), units_inp%energy)
-!               call parse_block_float(blk, ib-1, 2, this%omega(2), units_inp%energy)
-!               call parse_block_float(blk, ib-1, 3, this%omega(3), units_inp%energy)
-! 
-!             case ('theta')
-!               call parse_block_float(blk, ib-1, 1, this%theta(1), unit_one)
-!               call parse_block_float(blk, ib-1, 2, this%theta(2), unit_one)
-!               call parse_block_float(blk, ib-1, 3, this%theta(3), unit_one)
-! 
-!             case ('phi')
-!               call parse_block_float(blk, ib-1, 1, this%phi(1), unit_one)
-!               call parse_block_float(blk, ib-1, 2, this%phi(2), unit_one)
-!               call parse_block_float(blk, ib-1, 3, this%phi(3), unit_one)
-! 
-!             case default  
-!               call input_error('HarmonicSpectrumGrid')
-! 
-!           end select
-!         end do   
-!       end if
-!     
-!       this%nw = nint(abs((this%omega(2)-this%omega(1))/this%omega(3)))
-!       this%nt = nint(abs((this%theta(2)-this%theta(1))/this%theta(3)))
-!       this%np = nint(abs((this%phi(2)-this%phi(1))/this%phi(3)))
-!     
-!     
-!       memory =  M_TWO * REAL_PRECISION * dble(this%nw * this%nt *this%np)
-!       memory =  memory/CNST(1024.0)**2
-!     
-!       write(message(1), '(a)') "Grid:"
-!       call messages_info(1)
-!     
-!       write(message(1),'(3a)') '  Omega [', trim(units_abbrev(units_out%energy)), ']   = ('
-!       do ii = 1, 3
-!         if(ii == 2) write(message(1), '(2a)') trim(message(1)), ','
-!         if(ii == 3) write(message(1), '(2a)') trim(message(1)), ';'
-!         write(message(1), '(a,f6.3)') trim(message(1)), units_from_atomic(units_out%energy, this%omega(ii))
-!       end do
-!       write(message(1), '(2a,i10)') trim(message(1)), ')   # points  = ',  this%nw
-! 
-!       write(message(2),'(3a)') '  Theta [', 'Rad', '] = ('
-!       do ii = 1, 3
-!         if(ii == 2) write(message(2), '(2a)') trim(message(2)), ','
-!         if(ii == 3) write(message(2), '(2a)') trim(message(2)), ';'
-!         write(message(2), '(a,f6.3)') trim(message(2)), units_from_atomic(units_out%energy, this%theta(ii))
-!       end do
-!       write(message(2), '(2a,i10)') trim(message(2)), ')   # points  = ',  this%nt
-! 
-!       write(message(3),'(3a)') '  Phi   [', 'Rad', '] = ('
-!       do ii = 1, 3
-!         if(ii == 2) write(message(3), '(2a)') trim(message(3)), ','
-!         if(ii == 3) write(message(3), '(2a)') trim(message(3)), ';'
-!         write(message(3), '(a,f6.3)') trim(message(3)), units_from_atomic(units_out%energy, this%phi(ii))
-!       end do
-!       write(message(3), '(2a,i10)') trim(message(3)), ')   # points  = ',  this%np
-!     
-!       write(message(4),'(a,i10)') '  # total mesh (nw * nt * np) = ', this%np * this%nw * this%nt * 3
-!       write(message(5),'(a,f10.1,a)')'  memory =', memory, ' [Mb]'
-! 
-!       call messages_info(5)
     
+      !%Variable HarmonicSpectrumOmegaMax 
+      !%Type float
+      !%Section Time-Dependent::HarmonicSpectrum 
+      !%Description
+      !% Set a target maximum harmonic frequency.      
+      !% Requires NFFT libraries. 
+      !%End
+      call parse_float(datasets_check('HarmonicSpectrumOmegaMax'), CNST(-1.0), Wmax)
+      Wmax = units_to_atomic(units_inp%energy, Wmax)
+      Sfactor = - M_ONE
+      use_nfft = .false.
+      if(Wmax .gt. M_ZERO) use_nfft = .true. 
+#ifndef HAVE_NFFT
+      if(use_nfft) then
+        write(message(1),'(a)')'HarmonicSpectrumOmegaMax needs NFFT library.'
+        call messages_fatal(1)
+      end if 
+#endif
+      
+         
 
       !ALLOCATION 
+      if (.not. use_nfft) then
+        call cube_init(this%cube, box, this%mesh%sb, fft_type = FFT_COMPLEX, verbose = .true.)
+        
+      else
+        
+        
+        ! we just add 2 points for the enlarged region
+        box(1:dim) = box(1:dim) + 2 
 
-      call cube_init(this%cube, box, this%mesh%sb, fft_type = FFT_REAL, verbose = .true.)
-      call cube_init_fs_coords(this%cube, this%mesh%spacing(1:3), this%mesh%sb%dim)
+  #ifdef HAVE_NFFT    
+        !Set NFFT defaults to values that are optimal for PES (at least for the cases I have tested)
+        !These values are overridden by the NFFT options in the input file 
+        this%fft%nfft%set_defaults = .true.
+        this%fft%nfft%guru = .true.
+        this%fft%nfft%mm = 2 
+        this%fft%nfft%sigma = CNST(1.1)
+        this%fft%nfft%precompute = NFFT_PRE_PSI
+  #endif
+      
+        ! These options should not affect NFFT scheme  
+        optimize(1:3) = .false.
+        optimize(this%mesh%sb%periodic_dim+1:this%mesh%sb%dim) = .true.
+        optimize_parity(1:this%mesh%sb%periodic_dim) = 0
+        optimize_parity(this%mesh%sb%periodic_dim+1:this%mesh%sb%dim) = 1
+
+        call fft_init(this%fft, box, dim, FFT_COMPLEX, FFTLIB_NFFT, optimize, optimize_parity )
+          
+        Sfactor =  (maxval(M_PI / (this%mesh%spacing(1:dim)))*P_C) / Wmax        
+        
+        SAFE_ALLOCATE(XX(1:maxval(box(:)),3))
+    
+        !Generate the NFFT-enlarged node grid
+        if (Sfactor > 0) then
+          do idim = 1, dim
+            do ii=2, box(idim)-1 
+              XX(ii,idim)= (ii - int(box(idim)/2) -1)*this%mesh%spacing(idim)
+            end do
+            XX(1,idim)= (-int(box(idim)/2)) * this%mesh%spacing(idim) * Sfactor 
+            XX(box(idim),idim)= (int(box(idim)/2)) * this%mesh%spacing(idim) * Sfactor 
+          end do
+      
+        else
+          do idim = 1, dim
+            do ii=1, box(dim) 
+              XX(ii,dim)= (ii - int(box(dim)/2) -1) * this%mesh%spacing(1)
+            end do
+          end do
+        end if
+
+        do idim = dim + 1, 3
+          XX(:,idim) = XX(:,1)
+        end do
+    
+        !Set the node points and precompute the NFFT plan
+        call fft_init_stage1(this%fft, XX)
+
+        SAFE_DEALLOCATE_A(XX)
+
+        call cube_init(this%cube, box, this%mesh%sb)  
+        SAFE_ALLOCATE(this%cube%fft)
+        this%cube%fft = this%fft
+        call fft_get_dims(this%cube%fft, this%cube%rs_n_global, this%cube%fs_n_global, this%cube%rs_n, this%cube%fs_n, &
+             this%cube%rs_istart, this%cube%fs_istart)
+
+        write(message(1),'(a, f10.3)') '  NFFT Scaling factor: ', Sfactor
+        call messages_info(1)
+      end if 
+      
+      
+      call cube_init_fs_coords(this%cube, this%mesh%spacing(1:3), this%mesh%sb%dim, Sfactor)
       if ( this%mesh%parallel_in_domains .and. this%cube%parallel_in_domains) then
         call mesh_cube_parallel_map_init(this%mesh_cube_map, this%mesh, this%cube)
       end if      
+      
+      
+      
+
+      do ii = 1, dim
+        temp(ii) = maxval(abs(this%cube%k(1:this%cube%fs_n(ii), ii)))*P_C
+      end do
+      omegaMax = maxval(temp(1:dim))
+      omegaMin = sqrt(sum(abs(this%cube%k(2, 1:dim) - this%cube%k(1, 1:dim))**2))*P_C
+      write(message(1),'(3a)') '  (Max Omega, Delta Omega)  [', trim(units_abbrev(units_out%energy)), ']   =  ('
+      write(message(1),'(a, f10.3, a)') trim(message(1)), units_from_atomic(units_out%energy, omegaMax),', '
+      write(message(1),'(a, f10.6, a)') trim(message(1)), units_from_atomic(units_out%energy, omegaMin) ,') '
+      call messages_info(1)
       
       
       
@@ -299,9 +325,10 @@ contains
     type(states_t),      intent(in)    :: st
     integer,             intent(in)    :: ii
 
-    FLOAT, allocatable :: Js(:,:,:), J(:,:)
+    FLOAT, allocatable :: Js(:,:,:)
+    CMPLX, allocatable :: J(:,:)
     integer :: iw, it, ip, ir, dir
-    FLOAT   :: NN(1:3), omega, theta, phi, t
+    FLOAT   :: NN(1:3), omega, theta, phi
     CMPLX   :: nnj(1:3) 
     type(cube_function_t) :: cfJ
   
@@ -313,7 +340,7 @@ contains
     ASSERT(states_are_complex(st))
 
   	call cube_function_null(cfJ)    
-  	call dcube_function_alloc_RS(this%cube, cfJ)   
+  	call zcube_function_alloc_RS(this%cube, cfJ)   
   	call  cube_function_alloc_FS(this%cube, cfJ)   
 
     SAFE_ALLOCATE(J(1:this%mesh%np, 1:3))
@@ -323,25 +350,17 @@ contains
     J(:,:) = sum(Js(:,:,1:st%d%nspin)) ! sum up all the spin channels
     SAFE_DEALLOCATE_A(Js)
 
-    t = ii * this%dt
+ 
     
     do dir= 1, 3
+
+      call zmesh_to_cube(this%mesh, J(:,dir), this%cube, cfJ, local = .true.)
       
-      if (this%cube%parallel_in_domains) then
-        call dmesh_to_cube_parallel(this%mesh, J(:,dir), this%cube, cfJ, this%mesh_cube_map)
-      else
-        if(this%mesh%parallel_in_domains) then
-          call dmesh_to_cube(this%mesh, J(:,dir), this%cube, cfJ, local = .true.)
-        else 
-          call dmesh_to_cube(this%mesh, J(:,dir), this%cube, cfJ)
-        end if
-      end if
-      
-      call dcube_function_rs2fs(this%cube, cfJ)
+      call zcube_function_rs2fs(this%cube, cfJ)
       
       call apply_phase(cfJ)
       
-      this%Jkint(dir)%FS(:,:,:) = this%Jkint(dir)%FS(:,:,:) + cfJ%FS(:,:,:)
+      this%Jkint(dir)%FS(:,:,:) = this%Jkint(dir)%FS(:,:,:) + this%dt * cfJ%FS(:,:,:)
     end do
 
    
@@ -359,7 +378,9 @@ contains
       type(cube_function_t), intent(inout) :: cfJ
       
       integer :: ix,iy,iz
-      FLOAT :: KK(3), K
+      FLOAT :: KK(3), K, t
+
+      t = ii * this%dt
       
       do ix = 1, this%cube%fs_n(1)
         KK(1) = this%cube%k(ix,1)
@@ -369,7 +390,7 @@ contains
             KK(3) = this%cube%k(iz,3)
             
             K = sqrt(KK(1)**2 + KK(2)**2 + KK(3)**2)
-            cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) *  this%dt * exp(M_zI * this%dt * K * P_C)
+            cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) * exp(M_zI * t * K * P_C)
             
           end do
         end do
@@ -395,14 +416,16 @@ contains
   end subroutine harmonic_spect_checkpoint
 
   ! ---------------------------------------------------------
-  ! g(k) = |n x (n x J(k))|^2
+  ! g(k) = |n x (n x J(k))|^2 = |J(k)|^2 - |n.J(k)|^2 
+  ! with 
+  ! n = k/|k|
   ! ---------------------------------------------------------
   subroutine harmonic_spect_gk(this, gk)
     type(harmonic_spect_t), intent(in) :: this
     FLOAT,                  intent(out):: gk(:,:,:)
 
-    integer :: ix,iy,iz
-    FLOAT :: KK(3), K, N(3)
+    integer :: ix,iy,iz, idim
+    FLOAT :: KK(3), K, N(3), scale
     
     PUSH_SUB(harmonic_spect_gk)
 
@@ -433,7 +456,15 @@ contains
       end do
     end do
     
-    gk = gk/ (CNST(4.0) * M_PI**2 * P_C)
+    gk(:,:,:) = gk(:,:,:)/ (CNST(4.0) * M_PI**2 * P_C)
+    
+    ! This is needed in order to normalize the Fourier integral 
+    scale = M_ONE
+    do idim=1, this%mesh%sb%dim
+      scale = scale *( this%mesh%spacing(idim)/sqrt(M_TWO*M_PI))**2
+    end do
+    
+    gk = gk * scale
     
 
     POP_SUB(harmonic_spect_gk)  
@@ -445,9 +476,7 @@ contains
 
     
     FLOAT, allocatable :: gk(:,:,:)
-    integer :: ix,iy,iz
-    FLOAT :: KK(3), K, N(3)
-    
+
     
     PUSH_SUB(harmonic_spect_out)
 
@@ -542,10 +571,11 @@ contains
   end subroutine harmonic_spect_init_write
 
   ! ---------------------------------------------------------
-  subroutine harmonic_spect_total(this, file, gk, interpolate)
+  subroutine harmonic_spect_total(this, file, gk, bounds, interpolate)
     type(harmonic_spect_t), intent(in) :: this
     character(len=*),       intent(in) :: file
     FLOAT,                  intent(in) :: gk(:,:,:)
+    FLOAT, optional,        intent(in) :: bounds(3)
     logical, optional,      intent(in) :: interpolate
 
     integer :: ist, ik, ii, ix, iy, iz, iunit,idim
@@ -559,7 +589,7 @@ contains
     FLOAT, pointer :: cube_f(:)
     type(qshep_t) :: interp
 
-    FLOAT :: Dtheta, Dphi, theta, phi,EE , Emax, Edir(3)
+    FLOAT :: Dtheta, Dphi, theta, phi,EE , Wmin, Wmax, Wdir(3)
     integer :: np, Ntheta, Nphi, ith, iph
     integer :: ll(3), dim
 
@@ -569,22 +599,30 @@ contains
     PUSH_SUB(harmonic_spect_total)
 
 
-    ll = 1
-    step = M_ZERO
     dim = this%mesh%sb%dim
+    ll = 1
     do ii = 1, dim
       ll(ii) = size(gk,ii) 
-      step= step + abs(this%cube%k(2, ii) - this%cube%k(1, ii))**2 
-      Edir(ii) = maxval(abs(this%cube%k(1:this%cube%fs_n(ii), ii)))**2/M_TWO
     end do
-    step = step /M_TWO
     
     
-    Emax = maxval(Edir(1:dim))
+    if(.not. present(bounds)) then 
+      step = M_ZERO
+      do ii = 1, dim
+        step= step + abs(this%cube%k(2, ii) - this%cube%k(1, ii))**2 
+        Wdir(ii) = maxval(abs(this%cube%k(1:this%cube%fs_n(ii), ii)))*P_C
+      end do
+      step = sqrt(step)*P_C
+      Wmax = maxval(Wdir(1:dim))
+    else
+      Wmin = bounds(1)
+      Wmax = bounds(2)
+      step = bounds(3)
+    end if
 
-!     print *,"Emax", Emax, "DE", step
+!      print *,"-- Wmax", Wmax, "DW", step, "dim", dim, "ll", ll
 
-    nn  = int(Emax/step)
+    nn  = int(Wmax/step)
 
 
     Ntheta = 360
@@ -608,10 +646,10 @@ contains
           KK(2) = this%cube%k(iy,2)
           do iz = 1, ll(3)
             KK(3) = this%cube%k(iz,3)
-
+            
             if(KK(1).ne.0 .or. KK(2).ne.0 .or. KK(3).ne.0) then
               ! the power spectrum
-              vec = sum(KK(1:dim)**2) / M_TWO
+              vec = sqrt(sum(KK(1:dim)**2))*P_C
               ii = int(vec / step) + 1
 
               if(ii <= nn) then
@@ -688,17 +726,18 @@ contains
 
     !!Header
     write(iunit, '(a)') '##################################################'
-    write(iunit, '(a1,a18,a18)') '#', str_center("E", 18), str_center("S(E)", 18)
+    write(iunit, '(a1,a18,a18)') '#', str_center("w", 20), str_center("H(w)", 20)
     write(iunit, '(a1,a18,a18)') &
-      '#', str_center('['//trim(units_abbrev(units_out%energy)) // ']', 18), &
-      str_center('[1/' //trim(units_abbrev(units_out%energy))//']', 18)
+      '#', str_center('['//trim(units_abbrev(units_out%energy)) // ']', 20), &
+      str_center('[' //trim(units_abbrev(units_out%length))//'/' &
+          //trim(units_abbrev(units_out%time**2))//']', 20)
     write(iunit, '(a)') '##################################################'
  
 
     do ii = 1, nn
 !       if(present(npoints)) then
 
-        if(npoints(ii) > 0) then
+        if(npoints(ii) > M_ZERO) then
           write(iunit, '(es19.12,2x,es19.12,2x,es19.12)')  units_from_atomic(units_out%energy, (ii - 1) * step), out(ii), npoints(ii)
         end if
 

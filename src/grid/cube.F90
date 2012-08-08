@@ -55,14 +55,14 @@ module cube_m
     integer :: fs_istart(1:3)   !< where does the local portion of the cube start in fourier space
     integer :: center(1:3)      !< the coordinates of the center of the cube
 
-    integer, pointer :: np_local(:) !< Number of points in each partition
-    integer, pointer :: xlocal(:)   !< where does each process start when gathering a function
-    integer, pointer :: local(:,:)  !< local to global map used when gathering a function
+    integer, pointer :: np_local(:) => NULL() !< Number of points in each partition
+    integer, pointer :: xlocal(:)   => NULL() !< where does each process start when gathering a function
+    integer, pointer :: local(:,:)  => NULL() !< local to global map used when gathering a function
 
-    FLOAT, pointer :: x(:,:)            !< The (local) points in real space 
-    FLOAT, pointer :: k(:,:)            !< The (local) points in fourier space
+    FLOAT, pointer :: x(:,:) => NULL()    !< The (local) points in real space 
+    FLOAT, pointer :: k(:,:) => NULL()    !< The (local) points in fourier space
 
-    type(fft_t), pointer :: fft !< the fft object
+    type(fft_t), pointer :: fft => NULL()!< the fft object
   end type cube_t
 
 contains
@@ -208,12 +208,13 @@ contains
 
   ! ---------------------------------------------------------
   !> Initialize the cube FS coordinate map cube%k(:,:) for the employed fft_libary
-  subroutine cube_init_fs_coords(cube, dx, dim)
+  subroutine cube_init_fs_coords(cube, dx, dim, enlarge_nfft)
     type(cube_t), intent(inout) :: cube
-    FLOAT                       :: dx(1:3)
-    integer                     :: dim
+    FLOAT,        intent(in)    :: dx(1:3)
+    integer,      intent(in)    :: dim
+    FLOAT, optional, intent(in) :: enlarge_nfft
     
-    integer :: ii,nn, fsn_max, dir
+    integer :: ii,fsn_max, dir
     FLOAT   :: dk(1:dim)    
     
     PUSH_SUB(cube_init_fs_coords)
@@ -223,14 +224,14 @@ contains
     cube%k = M_ZERO
     
     dk(1:dim) = M_TWO * M_PI / (cube%rs_n_global(1:dim) * dx(1:dim))
-!     nn = cube%rs_n_global(1)
 
     do dir = 1, dim      
       do ii = cube%fs_istart(dir), cube%fs_n(dir)
         
-        if (cube%fft%library .eq.  FFTLIB_NFFT) then
+        if (cube%fft%library .eq.  FFTLIB_NFFT .and. present(enlarge_nfft)) then
           !The Fourier space is shrunk by the RS enlargment factor
-!           cube%k(ii, dir) = (ii - nn/2 - 1) * dk(dir) / (M_TWO**enlarge_nfft)
+          cube%k(ii, dir) = (ii - cube%rs_n_global(dir)/2 - 1) * dk(dir) / &
+                            optional_default(enlarge_nfft, M_ONE)
         else
           cube%k(ii, dir) = pad_feq(ii, cube%rs_n_global(dir), .true.) * dk(dir)
         end if
