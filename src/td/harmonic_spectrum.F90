@@ -78,9 +78,13 @@ module harmonic_spect_m
     type(mesh_cube_parallel_map_t) :: mesh_cube_map  !< The parallel map
     
     type(cube_function_t) :: Jkint(3) !< Time integrated FS density current
+    CMPLX, pointer        :: J(:,:,:) => NULL()!< the curent density at different timed used to calcualte dJ/dt     
+    
+    type(cube_function_t) :: cftmp(3)    
         
     FLOAT          :: dt
     integer        :: what                  !< what do we want to calculate
+    integer        :: how                   !< how to do the calculation
     
     type(fft_t)    :: fft
     
@@ -91,6 +95,10 @@ module harmonic_spect_m
     HS_AR   = 2, &
     HS_TOT  = 4
 
+  integer, parameter ::     &
+    HS_FROM_J      = 1, &
+    HS_FROM_DJDT   = 2
+
 
 contains
 
@@ -100,7 +108,8 @@ contains
     PUSH_SUB(harmonic_spect_nullify)
 
     this%mesh  => null()
-    this%gr  => null()
+    this%gr    => null()
+    this%J     => null()
 
     POP_SUB(harmonic_spect_nullify)
   end subroutine harmonic_spect_nullify
@@ -144,10 +153,14 @@ contains
     !% <tt>HarmonicSpectrum = angular_resolved + total</tt>
     !%Option none 0
     !% The harmonic spectrum is not calculated. This is the default.
-    !%Option angular_resolved 2
+    !%Option yes 1
+    !% Calcualte all.
+    !%Option integrated_current 2
     !% Angular resolved harmonic spectrum calculated from the current density.
     !%Option total 4
     !% The angle integrated quantity.
+    !%Option all_hs 8
+    !% Calcualte all.
     !%End
 
     call parse_integer(datasets_check('HarmonicSpectrum'), HS_NONE, hs_flags)
@@ -170,6 +183,22 @@ contains
       write(str, '(a,i5)') 'Harmonic Spectrum'
       call messages_print_stress(stdout, trim(str))
      
+      !%Variable HarmonicSpectrumHow 
+      !%Type integer
+      !%Default use_J
+      !%Section Time-Dependent::HarmonicSpectrumHow 
+      !%Description
+      !%Option use_J 1
+      !% n x (n x J).
+      !%Option use_dJdt 2
+      !% n x (n x dJ/dt).
+      !%End
+    
+      call parse_integer(datasets_check('HarmonicSpectrumHow'), HS_FROM_J, this%how)
+      if(.not.varinfo_valid_option('HarmonicSpectrumHow', this%how)) then
+        call input_error('HarmonicSpectrumHow')
+      end if
+      call messages_print_var_option(stdout, "HarmonicSpectrumHow", this%how)
     
     
       !%Variable HarmonicSpectrumOmegaMax 
@@ -194,6 +223,12 @@ contains
          
 
       !ALLOCATION 
+      
+      if(this%how .eq. HS_FROM_DJDT) then
+        SAFE_ALLOCATE(this%J(1:this%mesh%np, 1:3, 2))
+        this%J = M_z0
+      end if
+      
       if (.not. use_nfft) then
         call cube_init(this%cube, box, this%mesh%sb, fft_type = FFT_COMPLEX, verbose = .true.)
         
@@ -288,6 +323,11 @@ contains
       	call cube_function_null(this%Jkint(i))    
       	call cube_function_alloc_FS(this%cube, this%Jkint(i), force_alloc = .true.)   
         this%Jkint(i)%Fs = M_z0     
+        
+      	call cube_function_null(this%cftmp(i))    
+      	call cube_function_alloc_FS(this%cube, this%cftmp(i), force_alloc = .true.)   
+        this%cftmp(i)%Fs = M_z0     
+        
       end do 
 
 
@@ -308,22 +348,28 @@ contains
     PUSH_SUB(harmonic_spect_end)
     if(this%calc) then
       do i = 1, 3
-        call cube_function_free_fs(this%cube, this%Jkint(i))        
+        call cube_function_free_fs(this%cube, this%Jkint(i))   
+        call cube_function_free_fs(this%cube, this%cftmp(i))        
       end do
 
       call cube_end(this%cube)   
       
       call harmonic_spect_nullify(this)
+      
+      if(this%how .eq. HS_FROM_DJDT) then
+        SAFE_DEALLOCATE_P(this%J)
+      end if
+      
     end if
     POP_SUB(harmonic_spect_end)
   end subroutine harmonic_spect_end
 
 
   ! ---------------------------------------------------------
-  subroutine harmonic_spect_calc(this, st, ii)
+  subroutine harmonic_spect_calc(this, st, iter)
     type(harmonic_spect_t), intent(inout) :: this
     type(states_t),      intent(in)    :: st
-    integer,             intent(in)    :: ii
+    integer,             intent(in)    :: iter
 
     FLOAT, allocatable :: Js(:,:,:)
     CMPLX, allocatable :: J(:,:)
@@ -345,9 +391,18 @@ contains
 
     SAFE_ALLOCATE(J(1:this%mesh%np, 1:3))
 
-    SAFE_ALLOCATE(Js(1:this%mesh%np, 1:3, 1:st%d%nspin))      
+    SAFE_ALLOCATE(Js(1:this%mesh%np, 1:MAX_DIM, 1:st%d%nspin))    
+    Js = M_ZERO
+    J = M_z0  
     call states_calc_quantities(this%gr%der, st, paramagnetic_current = Js )
-    J(:,:) = sum(Js(:,:,1:st%d%nspin)) ! sum up all the spin channels
+
+    J(:,:) = Js(:,:,1) ! sum up all the spin channels
+    if(this%how == HS_FROM_DJDT) then
+      this%J(:,:,2) = this%J(:,:,1)      
+      this%J(:,:,1) = J(:, :)
+      J(:,:) = (this%J(:,:,1) - this%J(:,:,2)) / this%dt 
+    end if
+
     SAFE_DEALLOCATE_A(Js)
 
  
@@ -358,9 +413,13 @@ contains
       
       call zcube_function_rs2fs(this%cube, cfJ)
       
+      this%cftmp(dir)%FS = cfJ%FS
+      
       call apply_phase(cfJ)
       
       this%Jkint(dir)%FS(:,:,:) = this%Jkint(dir)%FS(:,:,:) + this%dt * cfJ%FS(:,:,:)
+!       this%Jkint(dir)%FS(:,:,:) = cfJ%zRS(:,:,:)
+
     end do
 
    
@@ -380,7 +439,8 @@ contains
       integer :: ix,iy,iz
       FLOAT :: KK(3), K, t
 
-      t = ii * this%dt
+      t = (iter - 1) * this%dt
+
       
       do ix = 1, this%cube%fs_n(1)
         KK(1) = this%cube%k(ix,1)
@@ -389,8 +449,9 @@ contains
           do iz = 1, this%cube%fs_n(3)
             KK(3) = this%cube%k(iz,3)
             
-            K = sqrt(KK(1)**2 + KK(2)**2 + KK(3)**2)
+            K = sqrt(sum(KK(1:3)**2))
             cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) * exp( M_zI * t * K * P_C)
+!             cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) * exp( M_zI * t * K * P_C*(M_PI *M_HALF))
             
           end do
         end do
@@ -407,14 +468,15 @@ contains
   !***********************************************************
 
   ! ---------------------------------------------------------
-  subroutine harmonic_spect_checkpoint(this)
+  subroutine harmonic_spect_checkpoint(this, iter)
     type(harmonic_spect_t), intent(in) :: this
+    integer,                intent(in) :: iter
     
     PUSH_SUB(harmonic_spect_checkpoint)
     
     if(this%calc .and. mpi_grp_is_root(mpi_world)) then
       call harmonic_spect_restart_write(this)
-      call harmonic_spect_out(this)
+      call harmonic_spect_out(this, iter)
     end if
     
     POP_SUB(harmonic_spect_checkpoint)
@@ -456,7 +518,7 @@ contains
                          - abs(N(2) * this%Jkint(2)%FS(ix, iy, iz))**2 &
                          - abs(N(3) * this%Jkint(3)%FS(ix, iy, iz))**2 
             
-          gk(ix, iy, iz) = gk(ix, iy, iz) * K**2 
+          if(this%how .eq. HS_FROM_J) gk(ix, iy, iz) = gk(ix, iy, iz) * K**2 
             
         end do
       end do
@@ -465,6 +527,8 @@ contains
    
     
     gk(:,:,:) = gk(:,:,:)/ (CNST(4.0) * M_PI**2 * P_C)
+    
+    if(this%how .eq. HS_FROM_J) gk(:,:,:) = gk(:,:,:)/P_C**2
     
     ! This is needed in order to normalize the Fourier integral 
     scale = M_ONE
@@ -477,6 +541,137 @@ contains
 
     POP_SUB(harmonic_spect_gk)  
   end subroutine harmonic_spect_gk  
+
+  ! ---------------------------------------------------------
+  subroutine harmonic_spect_write_J(J, Lk, dim, dir, cut, cutdim, file)
+    CMPLX,            intent(in) :: J(:,:,:)
+    FLOAT,            intent(in) :: Lk(:,:)
+    integer,          intent(in) :: dim
+    integer,          intent(in) :: dir
+    integer,          intent(in) :: cut
+    integer,          intent(in) :: cutdim
+    character(len=*), optional, intent(in) :: file
+  
+       
+    character(len=10) :: dirlab(3), cutlab(3)   
+    character(len=256) :: filename, path
+    integer :: iunit, ll(3), ii, ix, iy, iz
+    integer, allocatable :: idx(:,:)
+    FLOAT, allocatable   :: Lk_(:,:)
+    FLOAT                :: KK(3), temp, Retemp, Imtemp
+    CMPLX                :: tmp
+    
+    PUSH_SUB(harmonic_spect_write_J)
+
+    ASSERT(dir <= 3 .and. dir >=1)
+    ASSERT(cut <= 3 .and. cut >=1)
+    ASSERT(cutdim <= 3 .and. cutdim >=1)
+    ASSERT(size(J, 1) == size(Lk,1))
+    
+    dirlab = (/'x','y','z'/)    
+    select case (cutdim)
+      case (1)
+        cutlab = (/'ky=0.kz=0','kx=0.kz=0','kx=0.ky=0'/)
+        
+      case (2)
+        cutlab = (/'kx=0','ky=0','kz=0'/)
+    
+      case (3)
+    end select
+
+    path ='td.general/harmonic_spect_j-'
+    if(present(file)) path = file
+    
+    filename = trim(path)//trim(dirlab(dir))//'.'//trim(cutlab(cut))
+
+    iunit = io_open(filename, action='write')
+  
+    ll = 1
+    do ii = 1, dim
+      ll(ii) = size(J, ii) 
+    end do
+!     print *,"ll",ll, "dir", dir
+    
+
+    SAFE_ALLOCATE(idx(maxval(ll(:)), 3))
+    SAFE_ALLOCATE(Lk_(maxval(ll(:)), 3))
+  
+
+    do ii = 1, 3
+      Lk_(:,ii) = Lk(:,ii)
+      call sort(Lk_(1:ll(ii), ii), idx(1:ll(ii), ii)) !We need to sort the k-vectors in order to dump in gnuplot format
+    end do  
+!     print *,"idx(1)", idx(:,1)
+!     print *,"idx(2)", idx(1:3,2), "ll(dir)/2 + 1=", int(ll(dir)/2) + 1,"idx", idx(ll(dir)/2 + 1, 3)
+!     print *,"idx(3)", idx(1:3,3), "ll(dir)/2 + 1=", int(ll(dir)/2) + 1,"idx", idx(ll(dir)/2 + 1, 3)
+
+    select case (cutdim)
+      case (1)
+        do ix = 1, ll(1)
+          KK(1) = Lk_(ix, 1)
+      
+            select case (dir)
+            
+              case (1)
+!             print *,ix,"J",idx(ix, 1), idx(ll(2)/2 + 1, 2), idx(ll(3)/2 + 1, 3)
+
+                tmp = J(idx(ix, 1), idx(ll(2)/2 + 1, 2), idx(ll(3)/2 + 1, 3))
+    
+              case (2)
+                tmp = J(idx(ll(1)/2 + 1, 1), idx(ix, 2), idx(ll(3)/2 + 1, 3))    
+      
+              case (3)
+                tmp = J(idx(ll(1)/2 + 1, 1), idx(ll(2)/2 + 1, 2), idx(ix, 3))
+    
+            end select
+            
+            write(iunit, '(es19.12,2x,es19.12,2x,es19.12)') &
+                    units_from_atomic(sqrt(units_out%energy), KK(1)),&
+                    real(tmp), aimag(tmp)
+       
+        end do
+    
+
+      case (2)
+        do ix = 1, ll(1)
+          KK(1) = Lk_(ix, 1)
+          do iy = 1, ll(2)
+            KK(2) = Lk_(iy, 2)
+      
+
+            select case (dir)
+              case (1)
+                temp = abs(J(idx(ll(dir)/2 + 1, 1), idx(ix, 2), idx(iy, 3)))    
+    
+              case (2)
+                temp = abs(J(idx(ix, 1), idx(ll(dir)/2 + 1, 2), idx(iy, 3)))    
+      
+              case (3)
+                temp = abs(J(idx(ix, 1), idx(iy, 2), idx(ll(dir)/2 + 1, 3)))    
+    
+            end select
+        
+            write(iunit, '(es19.12,2x,es19.12,2x,es19.12)') &
+                    units_from_atomic(sqrt(units_out%energy), KK(1)),&
+                    units_from_atomic(sqrt(units_out%energy), KK(2)),&
+                    temp
+ 
+       
+          end do
+          write(iunit, *)  
+    
+        end do
+        
+    end select
+  
+    call io_close(iunit)
+
+    
+
+    
+    POP_SUB(harmonic_spect_write_J)
+  end subroutine harmonic_spect_write_J
+
 
   ! ---------------------------------------------------------
   subroutine harmonic_spect_write_gk(this, gk)
@@ -530,12 +725,14 @@ contains
 
 
   ! ---------------------------------------------------------
-  subroutine harmonic_spect_out(this)
+  subroutine harmonic_spect_out(this, iter)
     type(harmonic_spect_t),      intent(in) :: this
+    integer,                     intent(in) :: iter
 
     
     FLOAT, allocatable :: gk(:,:,:)
-
+    character(len=256) :: file
+    
     
     PUSH_SUB(harmonic_spect_out)
 
@@ -548,6 +745,12 @@ contains
     else
       call harmonic_spect_gk(this, gk)
     end if
+    
+    call harmonic_spect_write_J(this%Jkint(1)%FS, this%cube%k, this%mesh%sb%dim, dir = 1, cut = 1, cutdim = 1)
+    
+    write(file, '(a,i7.7)') "td.", iter
+    file=trim(file)//'/hs_jk-'    
+    call harmonic_spect_write_J(this%cftmp(1)%FS, this%cube%k, this%mesh%sb%dim, dir = 1, cut = 1, cutdim = 1, file = file)
     
     call harmonic_spect_write_gk(this, gk)
     
