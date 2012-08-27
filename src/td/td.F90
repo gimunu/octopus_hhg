@@ -332,7 +332,7 @@ contains
       end if
 
       !Harmonic spectrum
-      if(td%harms%calc) call harmonic_spect_calc(td%harms, st, ii)
+      if(td%harms%calc) call harmonic_spect_calc(td%harms, st, iter)
 
       !Photoelectron stuff 
       if(td%PESv%calc_rc .or. td%PESv%calc_mask ) &

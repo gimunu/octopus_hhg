@@ -440,7 +440,6 @@ contains
       FLOAT :: KK(3), K, t
 
       t = (iter - 1) * this%dt
-
       
       do ix = 1, this%cube%fs_n(1)
         KK(1) = this%cube%k(ix,1)
@@ -451,7 +450,6 @@ contains
             
             K = sqrt(sum(KK(1:3)**2))
             cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) * exp( M_zI * t * K * P_C)
-!             cfJ%FS(ix, iy, iz) = cfJ%FS(ix, iy, iz) * exp( M_zI * t * K * P_C*(M_PI *M_HALF))
             
           end do
         end do
