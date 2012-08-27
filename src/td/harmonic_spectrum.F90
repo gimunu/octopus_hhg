@@ -541,14 +541,13 @@ contains
   end subroutine harmonic_spect_gk  
 
   ! ---------------------------------------------------------
-  subroutine harmonic_spect_write_J(J, Lk, dim, dir, cut, cutdim, file)
-    CMPLX,            intent(in) :: J(:,:,:)
+  subroutine harmonic_spect_write_cf(cf, Lk, dim, file, cut, cutdim)
+    FLOAT,            intent(in) :: cf(:,:,:)
     FLOAT,            intent(in) :: Lk(:,:)
     integer,          intent(in) :: dim
-    integer,          intent(in) :: dir
+    character(len=*), intent(in) :: file
     integer,          intent(in) :: cut
     integer,          intent(in) :: cutdim
-    character(len=*), optional, intent(in) :: file
   
        
     character(len=10) :: dirlab(3), cutlab(3)   
@@ -559,14 +558,12 @@ contains
     FLOAT                :: KK(3), temp, Retemp, Imtemp
     CMPLX                :: tmp
     
-    PUSH_SUB(harmonic_spect_write_J)
+    PUSH_SUB(harmonic_spect_write_cf)
 
-    ASSERT(dir <= 3 .and. dir >=1)
     ASSERT(cut <= 3 .and. cut >=1)
     ASSERT(cutdim <= 3 .and. cutdim >=1)
-    ASSERT(size(J, 1) == size(Lk,1))
+    ASSERT(size(cf, 1) == size(Lk,1))
     
-    dirlab = (/'x','y','z'/)    
     select case (cutdim)
       case (1)
         cutlab = (/'ky=0.kz=0','kx=0.kz=0','kx=0.ky=0'/)
@@ -577,18 +574,15 @@ contains
       case (3)
     end select
 
-    path ='td.general/harmonic_spect_j-'
-    if(present(file)) path = file
     
-    filename = trim(path)//trim(dirlab(dir))//'.'//trim(cutlab(cut))
+    filename = trim(file)//'.'//trim(cutlab(cut))
 
     iunit = io_open(filename, action='write')
   
     ll = 1
     do ii = 1, dim
-      ll(ii) = size(J, ii) 
+      ll(ii) = size(cf, ii) 
     end do
-!     print *,"ll",ll, "dir", dir
     
 
     SAFE_ALLOCATE(idx(maxval(ll(:)), 3))
@@ -608,18 +602,18 @@ contains
         do ix = 1, ll(1)
           KK(1) = Lk_(ix, 1)
       
-            select case (dir)
+            select case (cut)
             
               case (1)
-!             print *,ix,"J",idx(ix, 1), idx(ll(2)/2 + 1, 2), idx(ll(3)/2 + 1, 3)
+!             print *,ix,"cf",idx(ix, 1), idx(ll(2)/2 + 1, 2), idx(ll(3)/2 + 1, 3)
 
-                tmp = J(idx(ix, 1), idx(ll(2)/2 + 1, 2), idx(ll(3)/2 + 1, 3))
+                tmp = cf(idx(ix, 1), idx(ll(2)/2 + 1, 2), idx(ll(3)/2 + 1, 3))
     
               case (2)
-                tmp = J(idx(ll(1)/2 + 1, 1), idx(ix, 2), idx(ll(3)/2 + 1, 3))    
+                tmp = cf(idx(ll(1)/2 + 1, 1), idx(ix, 2), idx(ll(3)/2 + 1, 3))    
       
               case (3)
-                tmp = J(idx(ll(1)/2 + 1, 1), idx(ll(2)/2 + 1, 2), idx(ix, 3))
+                tmp = cf(idx(ll(1)/2 + 1, 1), idx(ll(2)/2 + 1, 2), idx(ix, 3))
     
             end select
             
@@ -637,15 +631,15 @@ contains
             KK(2) = Lk_(iy, 2)
       
 
-            select case (dir)
+            select case (cut)
               case (1)
-                temp = abs(J(idx(ll(dir)/2 + 1, 1), idx(ix, 2), idx(iy, 3)))    
+                temp = cf(idx(ll(1)/2 + 1, 1), idx(ix, 2), idx(iy, 3))    
     
               case (2)
-                temp = abs(J(idx(ix, 1), idx(ll(dir)/2 + 1, 2), idx(iy, 3)))    
+                temp = cf(idx(ix, 1), idx(ll(2)/2 + 1, 2), idx(iy, 3))    
       
               case (3)
-                temp = abs(J(idx(ix, 1), idx(iy, 2), idx(ll(dir)/2 + 1, 3)))    
+                temp = cf(idx(ix, 1), idx(iy, 2), idx(ll(3)/2 + 1, 3))
     
             end select
         
@@ -667,8 +661,8 @@ contains
     
 
     
-    POP_SUB(harmonic_spect_write_J)
-  end subroutine harmonic_spect_write_J
+    POP_SUB(harmonic_spect_write_cf)
+  end subroutine harmonic_spect_write_cf
 
 
   ! ---------------------------------------------------------
@@ -744,11 +738,17 @@ contains
       call harmonic_spect_gk(this, gk)
     end if
     
-    call harmonic_spect_write_J(this%Jkint(1)%FS, this%cube%k, this%mesh%sb%dim, dir = 1, cut = 1, cutdim = 1)
     
-    write(file, '(a,i7.7)') "td.", iter
-    file=trim(file)//'/hs_jk-'    
-    call harmonic_spect_write_J(this%cftmp(1)%FS, this%cube%k, this%mesh%sb%dim, dir = 1, cut = 1, cutdim = 1, file = file)
+    file ='td.general/harmonic_spect_j-x'
+    call harmonic_spect_write_cf(abs(this%Jkint(1)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 1, cutdim = 1)
+
+    file ='td.general/harmonic_spect_gk'
+    call harmonic_spect_write_cf(gk, this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
+
+    
+!     write(file, '(a,i7.7)') "td.", iter
+!     file=trim(file)//'/hs_jk-'    
+!     call harmonic_spect_write_cf(abs(this%cftmp(1)%FS), this%cube%k, this%mesh%sb%dim, dir = 1, cut = 1, cutdim = 1, file = file)
     
     call harmonic_spect_write_gk(this, gk)
     
