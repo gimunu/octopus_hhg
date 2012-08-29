@@ -523,7 +523,7 @@ contains
 ! !                          - abs(N(2) * this%Jkint(2)%FS(ix, iy, iz))**2 &
 ! !                          - abs(N(3) * this%Jkint(3)%FS(ix, iy, iz))**2 
             
-          if(this%how .eq. HS_FROM_J) gk(ix, iy, iz) = gk(ix, iy, iz) * K**2 
+          if(this%how .eq. HS_FROM_J) gk(ix, iy, iz) = gk(ix, iy, iz) * (K*P_C)**2 
             
         end do
       end do
@@ -531,10 +531,8 @@ contains
         
    
     
-    gk(:,:,:) = gk(:,:,:)/ (CNST(4.0) * M_PI**2 * P_C)
-    
-    if(this%how .eq. HS_FROM_J) gk(:,:,:) = gk(:,:,:)/P_C**2
-    
+    gk(:,:,:) = gk(:,:,:)/ (CNST(4.0) * M_PI**2 * P_C**3)
+        
     ! This is needed in order to normalize the Fourier integral 
     scale = M_ONE
     do idim=1, this%mesh%sb%dim
@@ -753,9 +751,14 @@ contains
     call harmonic_spect_write_cf(gk, this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
 
     
-!     write(file, '(a,i7.7)') "td.", iter
-!     file=trim(file)//'/hs_jk-'    
-!     call harmonic_spect_write_cf(abs(this%cftmp(1)%FS), this%cube%k, this%mesh%sb%dim, dir = 1, cut = 1, cutdim = 1, file = file)
+    write(file, '(a,i7.7)') "td.", iter
+    file=trim(file)//'/hs_jk-x'    
+!     call harmonic_spect_write_cf(abs(this%cftmp(1)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
+    call harmonic_spect_write_cf(abs(this%Jkint(1)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
+
+    write(file, '(a,i7.7)') "td.", iter
+    file=trim(file)//'/hs_jk-y'    
+    call harmonic_spect_write_cf(abs(this%Jkint(2)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
     
     call harmonic_spect_write_gk(this, gk)
     
