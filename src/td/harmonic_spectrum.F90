@@ -490,7 +490,8 @@ contains
     FLOAT,                  intent(out):: gk(:,:,:)
 
     integer :: ix,iy,iz, idim
-    FLOAT :: KK(3), K, N(3), scale
+    FLOAT :: KK(3), K, scale
+    CMPLX :: N(3), P(3), J(3)
     
     PUSH_SUB(harmonic_spect_gk)
 
@@ -506,15 +507,21 @@ contains
             
           K = sqrt(KK(1)**2 + KK(2)**2 + KK(3)**2)
           N(:) = KK(:)/K
-          
-          gk(ix, iy, iz) = abs(this%Jkint(1)%FS(ix, iy, iz))**2 &
-                         + abs(this%Jkint(2)%FS(ix, iy, iz))**2 &
-                         + abs(this%Jkint(3)%FS(ix, iy, iz))**2
-            
-          gk(ix, iy, iz) = gk(ix, iy, iz) &
-                         - abs(N(1) * this%Jkint(1)%FS(ix, iy, iz))**2 &
-                         - abs(N(2) * this%Jkint(2)%FS(ix, iy, iz))**2 &
-                         - abs(N(3) * this%Jkint(3)%FS(ix, iy, iz))**2 
+
+          J(1) = this%Jkint(1)%FS(ix, iy, iz)
+          J(2) = this%Jkint(2)%FS(ix, iy, iz)
+          J(3) = this%Jkint(3)%FS(ix, iy, iz)
+          P = zcross_product(N, zcross_product(N, J))
+          gk(ix,iy,iz) = sum(abs(P(1:3))**2)
+           
+!           gk(ix, iy, iz) = abs(this%Jkint(1)%FS(ix, iy, iz))**2 &
+!                          + abs(this%Jkint(2)%FS(ix, iy, iz))**2 &
+!                          + abs(this%Jkint(3)%FS(ix, iy, iz))**2
+!             
+!           gk(ix, iy, iz) = gk(ix, iy, iz) &
+!                          - abs(sum(N(1:3) * this%Jkint(1:3)%FS(ix, iy, iz)))**2 !&
+! !                          - abs(N(2) * this%Jkint(2)%FS(ix, iy, iz))**2 &
+! !                          - abs(N(3) * this%Jkint(3)%FS(ix, iy, iz))**2 
             
           if(this%how .eq. HS_FROM_J) gk(ix, iy, iz) = gk(ix, iy, iz) * K**2 
             
