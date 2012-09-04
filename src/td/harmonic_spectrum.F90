@@ -751,22 +751,21 @@ contains
     call harmonic_spect_write_cf(gk, this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
 
     
-    write(file, '(a,i7.7)') "td.", iter
-    file=trim(file)//'/hs_jk-x'    
+!     write(file, '(a,i7.7)') "td.", iter
+!     file=trim(file)//'/hs_jk-x'    
+!     call harmonic_spect_write_cf(abs(this%Jkint(1)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
+! 
+!     write(file, '(a,i7.7)') "td.", iter
+!     file=trim(file)//'/hs_jk-y'    
+!     call harmonic_spect_write_cf(abs(this%Jkint(2)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
+! 
+!     write(file, '(a,i7.7)') "td.", iter
+!     file=trim(file)//'/hs_cftmp-x'    
 !     call harmonic_spect_write_cf(abs(this%cftmp(1)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
-    call harmonic_spect_write_cf(abs(this%Jkint(1)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
-
-    write(file, '(a,i7.7)') "td.", iter
-    file=trim(file)//'/hs_jk-y'    
-    call harmonic_spect_write_cf(abs(this%Jkint(2)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
-
-    write(file, '(a,i7.7)') "td.", iter
-    file=trim(file)//'/hs_cftmp-x'    
-    call harmonic_spect_write_cf(abs(this%cftmp(1)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
-
-    write(file, '(a,i7.7)') "td.", iter
-    file=trim(file)//'/hs_cftmp-y'    
-    call harmonic_spect_write_cf(abs(this%cftmp(2)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
+! 
+!     write(file, '(a,i7.7)') "td.", iter
+!     file=trim(file)//'/hs_cftmp-y'    
+!     call harmonic_spect_write_cf(abs(this%cftmp(2)%FS), this%cube%k, this%mesh%sb%dim, file, cut = 3, cutdim = 2)
 
     
     call harmonic_spect_write_gk(this, gk)
